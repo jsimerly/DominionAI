@@ -71,6 +71,8 @@ class Deck():
     def __init__(self):
         self.cards = [copper, copper, copper, copper, copper, copper, copper,
                     estate, estate, estate]
+        self.shuffle(self.cards)
+        
 
     def getTopCard(self, nCards=1):
         if nCards == 1:
@@ -80,6 +82,9 @@ class Deck():
             for i in range(nCards):
                 topCards.append(self.cards[i])
             return topCards
+
+    def shuffle(self, cards):
+        random.shuffle(cards)
 
 class Discard():
     def __init__(self):
@@ -131,16 +136,48 @@ class Player():
     def __init__(self):
         self.hand = Hand()
         self.deck = Deck()
+        self.discard = []
+        self.draw(nCards=5)
+        self.actions = 0
+        self.buys = 0
+        self.coins = 0
+        self.myTurn = False
+        self.phase = 'None'
 
     def draw(self, nCards=1):
-        cards = self.deck.getTopCard()
+        cards = self.deck.getTopCard(nCards=nCards)
         self.hand.cards.extend(cards)
+
+    def startTurn(self):
+        self.myTurn = True
+        self.actions = 1
+        self.buys = 1
+
+    def playMoney(self):
+        total = 0
+        for card in self.hand.cards:
+            if 'Treasure' in card.ctypes:
+                total += card.coin
+
+        self.coins += total
+        
+    
+    def buyCard(self, card):
+        if card.cost >= self.coins:
+            pass
+
+
+    def endTurn(self):
+        self.myTurn = False
+        self.actions = 0
+        self.buys = 0
+        self.coins = 0
+
+        
 
 
 if __name__ == '__main__':
     board = Board(nPlayers=3)
-    print(board.cardSlot1.name)
-    print(board.cardSlot2.name)
-    print(board.cardSlot3.name)
-    print(board.cardSlot4.name)
-    print(len(board.dutchies))
+    player = Player()
+    player.playMoney()
+    print(str(player.coins))
