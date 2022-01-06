@@ -94,6 +94,33 @@ class Hand():
     def __init__(self):
         self.cards = []
 
+class CardPile():
+    def __init__(self, card, nPlayers):
+        self.card = card
+        self.cardName = card.name
+        self.cardCost = card.cost
+        self.count = self.pileCount(card, nPlayers)
+
+    def pileCount(self, card, nPlayers):
+        if 'Victory' in card.ctypes:
+            if nPlayers == 2:
+                return 8
+            else:
+                return 12
+        elif card.name == 'Copper':
+            return (60-(7*nPlayers))
+        elif card.name == 'Silver':
+            return 40
+        elif card.name == 'Gold':
+            return 30
+        elif card.name == 'Curse':
+            return ((nPlayers*10)-10)
+        else:
+            return 10
+
+
+
+
 
 class Board():
     def __init__(self, nPlayers=4):
@@ -120,19 +147,15 @@ class Board():
         self.kingdomCards=[self.cardSlot1, self.cardSlot2, self.cardSlot3, self.cardSlot4, self.cardSlot5, 
                             self.cardSlot6, self.cardSlot7, self.cardSlot8, self.cardSlot9, self.cardSlot10]
         #Victory Cards
-        for cards in self.kingdomCards:
+        for (val, cards) in enumerate(self.kingdomCards):
             card = cards[0]
-            print(card.name)
-            if 'Victory' in card.ctypes:
-                print("-------------Gardens_____")
-                cards = []
-             
+            if 'Victory' in card.ctypes:           
                 if nPlayers == 2:
-                    cards = [card]*8
+                    self.kingdomCards[val] = [card]*8
                 else:
-                    cards = [card]*12
+                    self.kingdomCards[val] = [card]*12
 
-                print(len(cards))
+                
 
                     
         if nPlayers == 2:
@@ -179,14 +202,20 @@ class Player():
         
     
     def buyCard(self, cardslot):
-        if cardslot != []:
-            if cardslot[0].cost >= self.coins:
-                self.discard.append(cardslot)
-                
+        if self.buys >= 1:
+            if cardslot != []:
+                card = cardslot[0]
+                if card.cost >= self.coins:
+                    self.discard.append(cardslot)
+                    self.coins -= card.cost 
+                    self.buys -= 1
+                    
+                else:
+                    print('Not enough money')
             else:
-                print('Not enough money')
+                print('out of cards')
         else:
-            print('out of cards')
+            print('You have no buys')
 
 
     def endTurn(self):
