@@ -102,7 +102,39 @@ class Board():
         self.silvers = [silver]*40
         self.golds = [gold]*30
 
+        #Curse Cards
+        self.curses = [curse]*((nPlayers*10)-10)
+
+        #Kingdom Cards
+        sampledCards = random.sample(kindomCards, 10)
+        self.cardSlot1 = [sampledCards[0]]*10
+        self.cardSlot2 = [sampledCards[1]]*10
+        self.cardSlot3 = [sampledCards[2]]*10
+        self.cardSlot4 = [sampledCards[3]]*10
+        self.cardSlot5 = [sampledCards[4]]*10
+        self.cardSlot6 = [sampledCards[5]]*10
+        self.cardSlot7 = [sampledCards[6]]*10
+        self.cardSlot8 = [sampledCards[7]]*10
+        self.cardSlot9 = [sampledCards[8]]*10
+        self.cardSlot10 = [sampledCards[9]]*10
+        self.kingdomCards=[self.cardSlot1, self.cardSlot2, self.cardSlot3, self.cardSlot4, self.cardSlot5, 
+                            self.cardSlot6, self.cardSlot7, self.cardSlot8, self.cardSlot9, self.cardSlot10]
         #Victory Cards
+        for cards in self.kingdomCards:
+            card = cards[0]
+            print(card.name)
+            if 'Victory' in card.ctypes:
+                print("-------------Gardens_____")
+                cards = []
+             
+                if nPlayers == 2:
+                    cards = [card]*8
+                else:
+                    cards = [card]*12
+
+                print(len(cards))
+
+                    
         if nPlayers == 2:
             self.estates = [estate]*8
             self.dutchies = [duchy]*8
@@ -111,22 +143,6 @@ class Board():
             self.estates = [estate]*12
             self.dutchies = [duchy]*12
             self.provinces = [province]*12
-
-        #Curse Cards
-        self.curses = [curse]*((nPlayers*10)-10)
-
-        #Kingdom Cards
-        sampledCards = random.sample(kindomCards, 10)
-        self.cardSlot1 = sampledCards[0]
-        self.cardSlot2 = sampledCards[1]
-        self.cardSlot3 = sampledCards[2]
-        self.cardSlot4 = sampledCards[3]
-        self.cardSlot5 = sampledCards[4]
-        self.cardSlot6 = sampledCards[5]
-        self.cardSlot7 = sampledCards[6]
-        self.cardSlot8 = sampledCards[7]
-        self.cardSlot9 = sampledCards[8]
-        self.cardSlot10 = sampledCards[9]
 
 
         #Trash
@@ -162,9 +178,15 @@ class Player():
         self.coins += total
         
     
-    def buyCard(self, card):
-        if card.cost >= self.coins:
-            pass
+    def buyCard(self, cardslot):
+        if cardslot != []:
+            if cardslot[0].cost >= self.coins:
+                self.discard.append(cardslot)
+                
+            else:
+                print('Not enough money')
+        else:
+            print('out of cards')
 
 
     def endTurn(self):
@@ -181,3 +203,8 @@ if __name__ == '__main__':
     player = Player()
     player.playMoney()
     print(str(player.coins))
+    # for cards in board.kingdomCards:
+    #     print(cards[0].name)
+    #     print(len(cards))
+
+    
