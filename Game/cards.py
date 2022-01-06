@@ -100,6 +100,7 @@ class CardPile():
         self.cardName = card.name
         self.cardCost = card.cost
         self.count = self.pileCount(card, nPlayers)
+        self.empty = False
 
     def pileCount(self, card, nPlayers):
         if 'Victory' in card.ctypes:
@@ -119,54 +120,36 @@ class CardPile():
             return 10
 
 
-
-
-
 class Board():
     def __init__(self, nPlayers=4):
         #Treasure
-        self.coppers = [copper]*(60-(7*nPlayers))
-        self.silvers = [silver]*40
-        self.golds = [gold]*30
+        self.coppers = CardPile(copper, nPlayers)
+        self.silvers = CardPile(silver, nPlayers)
+        self.golds = CardPile(gold, nPlayers)
 
         #Curse Cards
         self.curses = [curse]*((nPlayers*10)-10)
 
         #Kingdom Cards
         sampledCards = random.sample(kindomCards, 10)
-        self.cardSlot1 = [sampledCards[0]]*10
-        self.cardSlot2 = [sampledCards[1]]*10
-        self.cardSlot3 = [sampledCards[2]]*10
-        self.cardSlot4 = [sampledCards[3]]*10
-        self.cardSlot5 = [sampledCards[4]]*10
-        self.cardSlot6 = [sampledCards[5]]*10
-        self.cardSlot7 = [sampledCards[6]]*10
-        self.cardSlot8 = [sampledCards[7]]*10
-        self.cardSlot9 = [sampledCards[8]]*10
-        self.cardSlot10 = [sampledCards[9]]*10
-        self.kingdomCards=[self.cardSlot1, self.cardSlot2, self.cardSlot3, self.cardSlot4, self.cardSlot5, 
-                            self.cardSlot6, self.cardSlot7, self.cardSlot8, self.cardSlot9, self.cardSlot10]
+        self.pile0 = CardPile(sampledCards[0], nPlayers)
+        self.pile1 = CardPile(sampledCards[1], nPlayers)
+        self.pile2 = CardPile(sampledCards[2], nPlayers)
+        self.pile3 = CardPile(sampledCards[3], nPlayers)
+        self.pile4 = CardPile(sampledCards[4], nPlayers)
+        self.pile5 = CardPile(sampledCards[5], nPlayers)
+        self.pile6 = CardPile(sampledCards[6], nPlayers)
+        self.pile7 = CardPile(sampledCards[7], nPlayers)
+        self.pile8 = CardPile(sampledCards[8], nPlayers)
+        self.pile9 = CardPile(sampledCards[9], nPlayers)
+
+        self.kingdomCards=[self.pile0, self.pile1, self.pile2, self.pile3, self.pile4, 
+                            self.pile5, self.pile6, self.pile7, self.pile8, self.pile9]
+        
         #Victory Cards
-        for (val, cards) in enumerate(self.kingdomCards):
-            card = cards[0]
-            if 'Victory' in card.ctypes:           
-                if nPlayers == 2:
-                    self.kingdomCards[val] = [card]*8
-                else:
-                    self.kingdomCards[val] = [card]*12
-
-                
-
-                    
-        if nPlayers == 2:
-            self.estates = [estate]*8
-            self.dutchies = [duchy]*8
-            self.provinces = [province]*8
-        else:
-            self.estates = [estate]*12
-            self.dutchies = [duchy]*12
-            self.provinces = [province]*12
-
+        self.estates = CardPile(estate, nPlayers)
+        self.dutchies = CardPile(duchy, nPlayers)
+        self.provinces = CardPile(province, nPlayers)
 
         #Trash
         self.trash = []
@@ -232,8 +215,9 @@ if __name__ == '__main__':
     player = Player()
     player.playMoney()
     print(str(player.coins))
-    # for cards in board.kingdomCards:
-    #     print(cards[0].name)
-    #     print(len(cards))
-
+    for cards in board.kingdomCards:
+        print(cards.cardName)
+        print(cards.count)
+        print(cards.card.cost)
+    
     
