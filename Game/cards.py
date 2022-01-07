@@ -173,7 +173,8 @@ class Board():
         self.trash = []
 
 class Player():
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.hand = []
         self.deck = Deck()
         
@@ -195,6 +196,9 @@ class Player():
         self.myTurn = True
         self.actions = 1
         self.buys = 1
+    
+    def playCard(self):
+        pass
 
     def playMoney(self):
         total = 0
@@ -235,51 +239,138 @@ class Player():
         self.hand = []
         self.draw(nCards=5)
 
+class GameManager():
+    def __init__(self):
+        self.nPlayers=0
+        while self.nPlayers not in (2,3,4):
+            print('Enter the number of players (2-4):')
+            self.nPlayers = int(input())
+    
+        self.players = []
+        for i in range(self.nPlayers):
+            name = 'Player ' + str(i+1)
+            self.players.append(Player(name))
+            #add input later for requesting name
+
+        self.board = Board(nPlayers=self.nPlayers)
+
+    def runGame(self):
+
+        playerTurn = 0
+        roundCounter = 0
+        while self._checkEmptyPiles() and self._checkProvPile():
+            currentPlayer = self.players[playerTurn]
+            print('It is ' + currentPlayer.name + "'s Turn!")
+
+            #Turn Starts
+            currentPlayer.startTurn()          
+
+            #Action Phase
+            
+            #Buy Phase
+
+            #End Turn
+            currentPlayer.endTurn()
+
+            playerTurn += 1
+            if playerTurn == self.nPlayers:
+                playerTurn = 0
+                roundCounter += 1
+
+                print(roundCounter)
+
+            
+            if roundCounter == 4:
+                self.board.pile0.count = 0
+                self.board.pile1.count = 0
+                self.board.pile2.count = 0
+                self.board.pile3.count = 0
+                #self.board.provinces.count = 0
+            
+            if roundCounter == 5:
+                break
+            
+        
+        
+    def _checkEmptyPiles(self):
+        emptyPilesCouinter = 0
+        for pile in self.board.kingdomCards:
+            if pile.count == 0:
+                emptyPilesCouinter += 1
+
+        if self.nPlayers is not 4:
+            if emptyPilesCouinter == 3:
+                return False
+            else:
+                return True
+        else:
+            if emptyPilesCouinter == 4:
+                return False
+            else:
+                return True
+
+    def _checkProvPile(self):
+        if self.board.provinces.count == 0:
+            return False
+        else:
+            return True
+
+
+    
+        
+        
+
+
+
+
 
         
 
 
 if __name__ == '__main__':
-    board = Board(nPlayers=3)
-    player = Player()
-    player.playMoney()
-    print(player.coins)
-    player.startTurn()
-    print('hand at start of turn')
-    for card in player.hand:
-        print(card.name)
-    print('-------')
-    player.coins=100
-    player.buys = 10
-    player.buyCard(board.golds)
-    player.buyCard(board.golds)
-    player.buyCard(board.golds)
-    player.buyCard(board.golds)
-    player.buyCard(board.golds)
-    print('Discard')
-    for card in player.deck.discard:
-        print(card.name)
-    print('Hand After Draw')
-    player.draw(nCards=3)
-    for card in player.hand:
-        print(card.name)
+    game = GameManager()
+    game.runGame()
+
+    # board = Board(nPlayers=3)
+    # player = Player()
+    # player.playMoney()
+    # print(player.coins)
+    # player.startTurn()
+    # print('hand at start of turn')
+    # for card in player.hand:
+    #     print(card.name)
+    # print('-------')
+    # player.coins=100
+    # player.buys = 10
+    # player.buyCard(board.golds)
+    # player.buyCard(board.golds)
+    # player.buyCard(board.golds)
+    # player.buyCard(board.golds)
+    # player.buyCard(board.golds)
+    # print('Discard')
+    # for card in player.deck.discard:
+    #     print(card.name)
+    # print('Hand After Draw')
+    # player.draw(nCards=3)
+    # for card in player.hand:
+    #     print(card.name)
     
-    print('Deck after draw')
-    for card in player.deck.cards:
-        print(card.name)
+    # print('Deck after draw')
+    # for card in player.deck.cards:
+    #     print(card.name)
 
-    print('End Turn')
-    player.endTurn()
-    for card in player.hand:
-        print(card.name)
+    # print('End Turn')
+    # player.endTurn()
+    # for card in player.hand:
+    #     print(card.name)
 
-    print('end of turn discard')
-    for card in player.deck.discard:
-        print(card.name)
+    # print('end of turn discard')
+    # for card in player.deck.discard:
+    #     print(card.name)
 
-    print('Player next end of turn Deck')
-    for card in player.deck.cards:
-        print(card.name)
+    # print('Player next end of turn Deck')
+    # for card in player.deck.cards:
+    #     print(card.name)
     
     
     
