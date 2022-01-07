@@ -71,28 +71,46 @@ class Deck():
     def __init__(self):
         self.cards = [copper, copper, copper, copper, copper, copper, copper,
                     estate, estate, estate]
-        self.shuffle(self.cards)
+        self.discard = []
+        self.shuffle()
         
 
     def getTopCard(self, nCards=1):
-        if nCards == 1:
-            return self.cards[0]
-        else:
-            topCards = []
+        topCards = []
+
+        if len(self.cards) >= nCards:
             for i in range(nCards):
                 topCards.append(self.cards[i])
+
             return topCards
+        elif nCards >= len(self.cards) + len(self.discard):
+            if self.discard == []:
+                return self.cards
+            else:
+                self.cards.extend(self.discard)
+                self.discard = []
+                self.shuffle()
+                
+                return self.cards
+        else:
+            self.cards.extend(self.discard)
+            self.discard = []
+            self.shuffle()
+            for i in range(nCards):
+                topCards.append(self.cards[i])
 
-    def shuffle(self, cards):
-        random.shuffle(cards)
+            return topCards
+            
 
-class Discard():
-    def __init__(self):
-        self.cards = []
-        
-class Hand():
-    def __init__(self):
-        self.cards = []
+    def drawCards(self, nCards=1):
+        cards = self.getTopCard(nCards)
+        del self.cards[0:nCards]
+        return cards
+
+
+    def shuffle(self):
+        random.shuffle(self.cards)
+
 
 class CardPile():
     def __init__(self, card, nPlayers):
@@ -156,19 +174,22 @@ class Board():
 
 class Player():
     def __init__(self):
-        self.hand = Hand()
+        self.hand = []
         self.deck = Deck()
-        self.discard = []
-        self.draw(nCards=5)
+        
         self.actions = 0
         self.buys = 0
         self.coins = 0
         self.myTurn = False
         self.phase = 'None'
 
+        self.draw(nCards=5)
+
+
+
     def draw(self, nCards=1):
-        cards = self.deck.getTopCard(nCards=nCards)
-        self.hand.cards.extend(cards)
+        cards = self.deck.drawCards(nCards)
+        self.hand.extend(cards)
 
     def startTurn(self):
         self.myTurn = True
@@ -177,7 +198,7 @@ class Player():
 
     def playMoney(self):
         total = 0
-        for card in self.hand.cards:
+        for card in self.hand:
             if 'Treasure' in card.ctypes:
                 total += card.coin
 
@@ -186,10 +207,10 @@ class Player():
     
     def buyCard(self, cardslot):
         if self.buys >= 1:
-            if cardslot != []:
-                card = cardslot[0]
-                if card.cost >= self.coins:
-                    self.discard.append(cardslot)
+            if cardslot.count != 0:
+                card = cardslot.card
+                if card.cost <= self.coins:
+                    self.deck.discard.append(card)
                     self.coins -= card.cost 
                     self.buys -= 1
                     
@@ -200,12 +221,20 @@ class Player():
         else:
             print('You have no buys')
 
+        if self.buys == 0:
+            self.endTurn()
+
 
     def endTurn(self):
         self.myTurn = False
         self.actions = 0
         self.buys = 0
         self.coins = 0
+
+        self.deck.discard.extend(self.hand)
+        self.hand = []
+        self.draw(nCards=5)
+
 
         
 
@@ -214,10 +243,43 @@ if __name__ == '__main__':
     board = Board(nPlayers=3)
     player = Player()
     player.playMoney()
-    print(str(player.coins))
-    for cards in board.kingdomCards:
-        print(cards.cardName)
-        print(cards.count)
-        print(cards.card.cost)
+    print(player.coins)
+    player.startTurn()
+    print('hand at start of turn')
+    for card in player.hand:
+        print(card.name)
+    print('-------')
+    player.coins=100
+    player.buys = 10
+    player.buyCard(board.golds)
+    player.buyCard(board.golds)
+    player.buyCard(board.golds)
+    player.buyCard(board.golds)
+    player.buyCard(board.golds)
+    print('Discard')
+    for card in player.deck.discard:
+        print(card.name)
+    print('Hand After Draw')
+    player.draw(nCards=3)
+    for card in player.hand:
+        print(card.name)
+    
+    print('Deck after draw')
+    for card in player.deck.cards:
+        print(card.name)
+
+    print('End Turn')
+    player.endTurn()
+    for card in player.hand:
+        print(card.name)
+
+    print('end of turn discard')
+    for card in player.deck.discard:
+        print(card.name)
+
+    print('Player next end of turn Deck')
+    for card in player.deck.cards:
+        print(card.name)
+    
     
     
