@@ -75,45 +75,43 @@ class CardPile():
 
 
 class Board():
-    
-    nPlayers = 4 
+    def __init__(self, nPlayers):
+        #Treasure
+        self.coppers = CardPile(copper, nPlayers)
+        self.silvers = CardPile(silver, nPlayers)
+        self.golds = CardPile(gold, nPlayers)
 
-    #Treasure
-    coppers = CardPile(copper, nPlayers)
-    silvers = CardPile(silver, nPlayers)
-    golds = CardPile(gold, nPlayers)
+        self.treasureCards=[self.coppers, self.silvers, self.golds]
 
-    treasureCards=[coppers, silvers, golds]
+        #Curse Cards
+        self.curses = CardPile(curse, nPlayers)
 
-    #Curse Cards
-    curses = CardPile(curse, nPlayers)
+        #Kingdom Cards
+        sampledCards = random.sample(kindomCards, 10)
+        pile0 = CardPile(sampledCards[0], nPlayers)
+        pile1 = CardPile(sampledCards[1], nPlayers)
+        pile2 = CardPile(sampledCards[2], nPlayers)
+        pile3 = CardPile(sampledCards[3], nPlayers)
+        pile4 = CardPile(sampledCards[4], nPlayers)
+        pile5 = CardPile(sampledCards[5], nPlayers)
+        pile6 = CardPile(sampledCards[6], nPlayers)
+        pile7 = CardPile(sampledCards[7], nPlayers)
+        pile8 = CardPile(sampledCards[8], nPlayers)
+        pile9 = CardPile(sampledCards[9], nPlayers)
 
-    #Kingdom Cards
-    sampledCards = random.sample(kindomCards, 10)
-    pile0 = CardPile(sampledCards[0], nPlayers)
-    pile1 = CardPile(sampledCards[1], nPlayers)
-    pile2 = CardPile(sampledCards[2], nPlayers)
-    pile3 = CardPile(sampledCards[3], nPlayers)
-    pile4 = CardPile(sampledCards[4], nPlayers)
-    pile5 = CardPile(sampledCards[5], nPlayers)
-    pile6 = CardPile(sampledCards[6], nPlayers)
-    pile7 = CardPile(sampledCards[7], nPlayers)
-    pile8 = CardPile(sampledCards[8], nPlayers)
-    pile9 = CardPile(sampledCards[9], nPlayers)
+        self.kingdomCards=[pile0, pile1, pile2, pile3, pile4, 
+                        pile5, pile6, pile7, pile8, pile9]
+        
+        #Victory Cards
+        self.estates = CardPile(estate, nPlayers)
+        self.dutchies = CardPile(duchy, nPlayers)
+        self.provinces = CardPile(province, nPlayers)
 
-    kingdomCards=[pile0, pile1, pile2, pile3, pile4, 
-                    pile5, pile6, pile7, pile8, pile9]
-    
-    #Victory Cards
-    estates = CardPile(estate, nPlayers)
-    dutchies = CardPile(duchy, nPlayers)
-    provinces = CardPile(province, nPlayers)
+        self.vicCards = [self.estates, self.dutchies, self.provinces, self.curses]
+        
 
-    vicCards = [estates, dutchies, provinces, curses]
-    
-
-    #Trash
-    trash = []
+        #Trash
+        self.trash = []
 
 class Player():
     def __init__(self, name, board,):
@@ -177,7 +175,7 @@ class Player():
             cardDict[str(i+1)] = cardPile
 
         cardSelected = 0
-        while cardSelected not in cardDict.keys():
+        while cardSelected not in cardDict.keys() and cardSelected != 'x':
             print('Budget: $' + str(self.coins))
             print('--- Treasure Cards ---')
             for key, cardPile in cardDict.items():
@@ -195,10 +193,13 @@ class Player():
                 if key == '5':
                     print('')
                 
+            print('')
+            print('--- Other ---')
             print('(x) Do not buy a card. End Turn.')
             cardSelected = input()
 
         if cardSelected == 'x':
+            print(self.name + ' did not buy a card.')
             self.endTurn()
         else:
             selectedCard = cardDict[cardSelected]
@@ -309,7 +310,7 @@ def runGame():
             print('Enter the number of players (2-4):')
             nPlayers = int(input())
     
-    board = Board()
+    board = Board(nPlayers)
     players = []
     for i in range(nPlayers):
         name = 'Player ' + str(i+1)
