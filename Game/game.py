@@ -83,8 +83,10 @@ class Board():
     silvers = CardPile(silver, nPlayers)
     golds = CardPile(gold, nPlayers)
 
+    treasureCards=[coppers, silvers, golds]
+
     #Curse Cards
-    curses = [curse]*((nPlayers*10)-10)
+    curses = CardPile(curse, nPlayers)
 
     #Kingdom Cards
     sampledCards = random.sample(kindomCards, 10)
@@ -106,6 +108,9 @@ class Board():
     estates = CardPile(estate, nPlayers)
     dutchies = CardPile(duchy, nPlayers)
     provinces = CardPile(province, nPlayers)
+
+    vicCards = [estates, dutchies, provinces, curses]
+    
 
     #Trash
     trash = []
@@ -153,32 +158,50 @@ class Player():
         self.selectBuyCard()
 
     def getBuyCards(self):
-        cards = [cardPile for cardPile in Board.kingdomCards]
+        cards = [cardPile for cardPile in self.board.kingdomCards]
         return cards
 
     def selectBuyCard(self):
         cardPiles = self.getBuyCards()
-        pileNames = [cardPile.card.name for cardPile in cardPiles]
         
-        cardIndex = []
+        cardDict = {
+            'c' : self.board.coppers,
+            's' : self.board.silvers,
+            'g' : self.board.golds,
+            'e' : self.board.estates,
+            'd' : self.board.dutchies,
+            'p' : self.board.provinces,
+            'curse' : self.board.curses,
+        }
+        for i, cardPile in enumerate(cardPiles):
+            cardDict[str(i+1)] = cardPile
+
         cardSelected = 0
-        while cardSelected not in cardIndex:
+        while cardSelected not in cardDict.keys():
             print('Budget: $' + str(self.coins))
-            print('Your buying options are:')
-            for i,cardPile in enumerate(cardPiles):
-                i += 1
-                print('({}) ${} {} <{}>'.format(str(i),  str(cardPile.card.cost), cardPile.card.name, str(cardPile.count)))
-                cardIndex.append(i)
-            cardIndex.append(i+1)
+            print('--- Treasure Cards ---')
+            for key, cardPile in cardDict.items():
+                card = cardPile.card
+                
+                print('({})| ${} {} <{}> |   '.format(key ,card.cost, card.name, cardPile.count), end=' ', flush=True)
+                if key == 'g':
+                    print('')
+                    print('--- Victory Cards ---')
 
-            print('({}) Do not buy a card.'.format(len(cardIndex)) )
+                if key == 'curse':
+                    print('')
+                    print('--- Kingdom Cards ---')
+                
+                if key == '5':
+                    print('')
+                
+            print('(x) Do not buy a card. End Turn.')
+            cardSelected = input()
 
-            cardSelected = int(input())
-
-        if cardSelected == cardIndex[-1]:
+        if cardSelected == 'x':
             self.endTurn()
         else:
-            selectedCard = cardPiles[cardSelected-1]
+            selectedCard = cardDict[cardSelected]
             self.buyCard(selectedCard)
 
             if self.buys == 0:
