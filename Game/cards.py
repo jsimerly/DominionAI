@@ -26,9 +26,33 @@ moat = Card('Moat', ['Action', 'Reaction'], 2, cards=2)
 #3 Cost
 chancellor = Card('Chancellor', ['Action'], 3, coin=2)
 
-def harbingerAction():
-    print('this is Harbinger Action')
-    
+def harbingerAction(player, opponents, board):
+    discardPile = player.discard
+    if discardPile == []:
+        print('Your discard pile is empty')
+    else:
+        print('Select a card to place onto your deck:')
+        cardIndex = []
+        cardSelected = 0
+        while cardSelected not in cardIndex:
+            print('Choose between these cards:')
+            for i, card in enumerate(discardPile):
+                i += 1
+                print('('+ str(i) + ') ' + card.name)
+                cardIndex.append(i)
+            cardIndex.append(i+1)
+
+            print('({}) Do not select a card.'.format(len(cardIndex)) )
+
+            cardSelected = int(input())
+
+        if cardSelected == cardIndex[-1]:
+           print('No card topdecked.')
+        else:
+            selectedCard = discardPile[cardSelected-1]
+            print(selectedCard.name)
+            player.deck.cards.insert(0, selectedCard)
+            player.discard.remove(selectedCard)
 harbinger = Card('Harbinger', ['Action'], 3, actions=1, cards=1, uAction=harbingerAction)
 
 def merchantAction():

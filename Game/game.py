@@ -118,6 +118,7 @@ class Player():
         self.board = board
         self.name = name
         self.hand = []
+        self.discard = []
         self.deck = Deck()
 
         self.opponents = None
@@ -139,12 +140,8 @@ class Player():
         self.actions = 1
         self.buys = 1
 
+        print('----- Action Phase -----')
         actionCards = self.getActionsCard()
-        if actionCards == []:
-            print('You have no actions cards to play.')
-            self.startBuyPhase()
-        else:
-            self.selectActionCard()
     
     def lookAtHand(self):
         cardNames = [card.name for card in self.hand]
@@ -220,22 +217,27 @@ class Player():
         return actionCards  
     
     def selectActionCard(self):
-        if self.actions != 0:
-            actionsCards = self.getActionsCard()
-            
-            cardIndex = []
-            cardSelected = 0
-            while cardSelected not in cardIndex:
-                print('Choose between these cards:')
-                for i, card in enumerate(actionsCards):
-                    i += 1
-                    print('('+ str(i) + ') ' + card.name)
-                    cardIndex.append(i)
-                cardIndex.append(i+1)
+        actionsCards = self.getActionsCard()
+        if actionsCards == []:
+            print('You do not have any action cards in hand, moving to buy phase.')
+            self.startBuyPhase()
+        else:
+            if self.actions != 0:
+                
+                
+                cardIndex = []
+                cardSelected = 0
+                while cardSelected not in cardIndex:
+                    print('Choose between these cards:')
+                    for i, card in enumerate(actionsCards):
+                        i += 1
+                        print('('+ str(i) + ') ' + card.name)
+                        cardIndex.append(i)
+                    cardIndex.append(i+1)
 
-                print('({}) Do not play action card.'.format(len(cardIndex)) )
+                    print('({}) Do not play action card.'.format(len(cardIndex)) )
 
-                cardSelected = int(input())
+                    cardSelected = int(input())
 
                 if cardSelected == cardIndex[-1]:
                     self.startBuyPhase()
@@ -243,16 +245,16 @@ class Player():
                     selectedCard = actionsCards[cardSelected-1]
 
                     self.playActionCard(selectedCard)
-        else:
-            print('Out of Actions, moving to buy phase')
-            self.startBuyPhase()
+            else:
+                print('Out of Actions, moving to buy phase')
+                self.startBuyPhase()
         
     
     def playActionCard(self, card):
         print('Player has played ' + card.name)
         self.actions += card.actions
         self.buys += card.buys
-        self.coins += card.buys
+        self.coins += card.coin
 
         if card.carddraw != 0:
             self.draw(nCards=card.carddraw)
@@ -303,29 +305,12 @@ class Player():
 
         print(self.name + "'s turn has ended.")
 
-def runGame():
-    #Set Up Game
-    nPlayers = 0
-    while nPlayers not in (2,3,4):
-            print('Enter the number of players (2-4):')
-            nPlayers = int(input())
-    
-    board = Board(nPlayers)
-    players = []
-    for i in range(nPlayers):
-        name = 'Player ' + str(i+1)
-        players.append(Player(name, board=board))
 
-    def getOpponents(pList, n):
+def getOpponents(pList, n):
         newList = pList[:n] + pList[n+1:]
         return newList
-        
-    for i, player in enumerate(players):
-        opps = getOpponents(players, i)
-        player.opponents = opps
 
-    #Start game
-    def checkPiles():
+def checkPiles(board, nPlayers):
         emptyPilesCouinter = 0
         for pile in board.kingdomCards:
             if pile.count == 0:
@@ -342,18 +327,37 @@ def runGame():
             else:
                 return True
 
-    def checkProvince():
-        if board.provinces.count == 0:
-            return False
-        else:
-            return True
+def checkProvince(board):
+    if board.provinces.count == 0:
+        return False
+    else:
+        return True
 
+def runGame():
+    #Set Up Game
+    nPlayers = 0
+    while nPlayers not in (2,3,4):
+            print('Enter the number of players (2-4):')
+            nPlayers = int(input())
+    
+    board = Board(nPlayers)
+    players = []
+    for i in range(nPlayers):
+        name = 'Player ' + str(i+1)
+        players.append(Player(name, board=board))
+
+    
+        
+    for i, player in enumerate(players):
+        opps = getOpponents(players, i)
+        player.opponents = opps
+
+    #Start game
     playerTurn = 0
     roundCounter = 0
     MAX_ROUNDS = 5
 
-    #Actively running game
-    while checkPiles() and checkProvince() and roundCounter < MAX_ROUNDS:
+    while checkPiles(board, nPlayers) and checkProvince(board) and roundCounter < MAX_ROUNDS:
         activePlayer = players[playerTurn]
         print('------------------------------------------------')
         print('It is ' + activePlayer.name + "'s Turn!")
