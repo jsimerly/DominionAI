@@ -1,6 +1,6 @@
 
-from os import name
-import random
+# import random
+import numpy.random as random
 from cards import *
 
 class Deck():
@@ -87,7 +87,7 @@ class Board():
         self.curses = CardPile(curse, nPlayers)
 
         #Kingdom Cards
-        sampledCards = random.sample(kindomCards, 10)
+        sampledCards = random.choice(kindomCards, size=10, replace=False)
         pile0 = CardPile(sampledCards[0], nPlayers)
         pile1 = CardPile(sampledCards[1], nPlayers)
         pile2 = CardPile(sampledCards[2], nPlayers)
