@@ -1,4 +1,5 @@
 
+from os import name
 import random
 from cards import *
 
@@ -138,6 +139,7 @@ class Player():
         actionCards = self.getActionsCard()
         if actionCards == []:
             print('You have no actions cards to play.')
+            self.startBuyPhase()
         else:
             self.selectActionCard()
     
@@ -156,11 +158,17 @@ class Player():
         if option == 1:
             self.selectActionCard()
         else:
-            self.buyPhaseOptions()
+            self.startBuyPhase()
 
-            
+    def startBuyPhase(self):
+        self.playMoney()
+        print('You have '+ str(self.coins) + ' coins.')
+        self.buyPhaseOptions()
 
     def buyPhaseOptions(self):
+        cardPiles = self.getBuyCards()
+        cardPilesName = [cardPile.card.name for cardPile in cardPiles]
+        print('Piles: '+ str(cardPilesName))
         print('Please select from the following Options:')
         option = 0
         while option not in (1,2):
@@ -174,13 +182,42 @@ class Player():
             self.endTurn()
 
     def getBuyCards(self):
-        cards = [cardPile.card.name for cardPile in Board.kingdomCards]
-
+        cards = [cardPile for cardPile in Board.kingdomCards]
         return cards
 
     def selectBuyCard(self):
-        self.getBuyCards()
-        pass
+        cardPiles = self.getBuyCards()
+        pileNames = [cardPile.card.name for cardPile in cardPiles]
+        
+        cardIndex = []
+        cardSelected = 0
+        while cardSelected not in cardIndex:
+            print('Budget: $' + str(self.coins))
+            print('Your buying options are:')
+            for i,cardPile in enumerate(cardPiles):
+                i += 1
+                print('('+ str(i) +')' + cardPile.card.name + ' $' + str(cardPile.card.cost))
+                cardIndex.append(i)
+            cardIndex.append(i+1)
+
+            print('({}) Do not buy a card.'.format(len(cardIndex)) )
+
+            cardSelected = int(input())
+
+        if cardSelected == cardIndex[-1]:
+            self.endTurn()
+        else:
+            selectedCard = cardPiles[cardSelected-1]
+            self.buyCard(selectedCard)
+
+            if self.buys == 0:
+                self.endTurn()
+            else:
+                self.startBuyPhase()
+
+
+
+
 
     def getActionsCard(self):
         actionCards = [card for card in self.hand if 'Action' in card.ctypes]
@@ -190,7 +227,6 @@ class Player():
     def selectActionCard(self):
         if self.actions != 0:
             actionsCards = self.getActionsCard()
-            actionCardNames = [card.name for card in actionsCards]
             
             cardIndex = []
             cardSelected = 0
@@ -200,22 +236,21 @@ class Player():
                     i += 1
                     print('('+ str(i) + ') ' + card.name)
                     cardIndex.append(i)
-
                 cardIndex.append(i+1)
+
                 print('({}) Do not play action card.'.format(len(cardIndex)) )
-                
 
                 cardSelected = int(input())
 
                 if cardSelected == cardIndex[-1]:
-                    self.buyPhaseOptions()
+                    self.startBuyPhase()
                 else:
                     selectedCard = actionsCards[cardSelected-1]
 
                     self.playActionCard(selectedCard)
         else:
             print('Out of Actions, moving to buy phase')
-            self.buyPhaseOptions()
+            self.startBuyPhase()
         
     
     def playActionCard(self, card):
@@ -246,23 +281,20 @@ class Player():
         self.coins += total
             
     def buyCard(self, cardslot):
-        if self.buys >= 1:
-            if cardslot.count != 0:
-                card = cardslot.card
-                if card.cost <= self.coins:
-                    self.deck.discard.append(card)
-                    self.coins -= card.cost 
-                    self.buys -= 1
-                    
-                else:
-                    print('Not enough money')
-            else:
-                print('out of cards')
-        else:
-            print('You have no buys')
+        if cardslot.count != 0:
+            card = cardslot.card
+            if card.cost <= self.coins:
+                self.deck.discard.append(card)
+                self.coins -= card.cost 
+                self.buys -= 1
 
-        if self.buys == 0:
-            self.endTurn()
+                print(self.name + ' bought a ' +card.name)
+
+                
+            else:
+                print('Not enough money')
+        else:
+            print('out of cards')
 
 
     def endTurn(self):
@@ -274,6 +306,8 @@ class Player():
         self.deck.discard.extend(self.hand)
         self.hand = []
         self.draw(nCards=5)
+
+        print(self.name + "'s turn has ended.")
 
 def runGame():
     #Set Up Game
@@ -324,8 +358,10 @@ def runGame():
     roundCounter = 0
     MAX_ROUNDS = 5
 
+    #Actively running game
     while checkPiles() and checkProvince() and roundCounter < MAX_ROUNDS:
         activePlayer = players[playerTurn]
+        print('------------------------------------------------')
         print('It is ' + activePlayer.name + "'s Turn!")
 
         activePlayer.startTurn()
