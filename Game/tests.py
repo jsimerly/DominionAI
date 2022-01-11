@@ -26,6 +26,7 @@ def cardActions(card):
     player.actions += card.actions
     player.buys += card.buys
     player.coins += card.coin
+    player.hand.remove(card)
 
     if card.carddraw != 0:
         player.draw(nCards=card.carddraw)
@@ -34,6 +35,7 @@ def cardActions(card):
         print('action not nones')
         card.uAction(player, player.opponents, board)
 
+    player.discard.append(card)
     player.actions -= 1
     print('----------------------Outcomes----------------------')
     print('Actions: ' + str(player.actions))
@@ -42,10 +44,24 @@ def cardActions(card):
     print('Hand: ' + str([card.name for card in player.hand]))
     print('Discard :' +str([card.name for card in player.discard]))
     print('Next 2 cards on deck: ' + str([card.name for card in player.deck.cards[0:2]]))
+    print('TRASH: ' + str([card.name for card in board.trash]))
+    print('-------- Opponent Outcomes ---------')
     for i,opp in enumerate(player.opponents):
         oppHand = [card.name for card in opp.hand]
+        oppDiscard = [card.name for card in opp.discard]
         print('Opponent {}\'s Hand: {}'.format(i, oppHand))
+        print('Opponent {}\'s Discard: {}'.format(i, oppDiscard))
+
+def cardReactions(card):
+    pass
 
 
 if __name__ == '__main__':
-    cardActions(harbinger)
+    #cardActions(harbinger)
+    #print('------------------Expected Outcomes-----------------------')
+    #cardActions(cellar)
+    #cardActions(chapel)
+    #cardActions(moat)
+    cardReactions(moat)
+    #cardActions(merchant) #Appended silver to hand
+    cardActions(vassal)

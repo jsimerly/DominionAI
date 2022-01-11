@@ -139,8 +139,10 @@ class Player():
         self.myTurn = True
         self.actions = 1
         self.buys = 1
-
+        hand = [card.name for card in self.hand]
+        print('Hand: {}'.format(hand))
         print('----- Action Phase -----')
+        self.selectActionCard()
         actionCards = self.getActionsCard()
     
     def lookAtHand(self):
@@ -235,7 +237,7 @@ class Player():
                         cardIndex.append(i)
                     cardIndex.append(i+1)
 
-                    print('({}) Do not play action card.'.format(len(cardIndex)) )
+                    print('({}) Do not play action card.'.format(len(cardIndex)))
 
                     cardSelected = int(input())
 
@@ -255,14 +257,16 @@ class Player():
         self.actions += card.actions
         self.buys += card.buys
         self.coins += card.coin
+        
+        self.hand.remove(card)
 
         if card.carddraw != 0:
             self.draw(nCards=card.carddraw)
 
         if card.uAction != None:
-            print('action not nones')
             card.uAction()
 
+        self.discard.append(card)
         self.actions -= 1
         self.selectActionCard()
         
@@ -302,8 +306,10 @@ class Player():
         self.deck.discard.extend(self.hand)
         self.hand = []
         self.draw(nCards=5)
+        hand = [card.name for card in self.hand]
 
         print(self.name + "'s turn has ended.")
+        print('New Hand: {}'.format(hand))
 
 
 def getOpponents(pList, n):

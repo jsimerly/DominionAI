@@ -14,18 +14,88 @@ class Card():
         self.vp = vp
         self.uAction = uAction
 
-#Kingdom Cards
-#2 Cost
-def cellarAction(self):
-    self.deck
-    pass
-cellar = Card('Cellar', ['Action'], 2,)
-chapel = Card('Chapel', ['Action'], 2,)
+#----------Kingdom Cards
+#-----2 Cost
+
+#Cellar
+def cellarAction(player, opponents, board):
+    hand = player.hand
+    
+    cardsSelected = []
+    cardIndex = []
+    running = True
+    while running:
+        cardIndex=[]
+        cardsSelected = []
+        print('Select the cards that you wish to discard in the format # # #. Example: 1 2 4.')
+        print('Choose between these cards:')
+        for i, card in enumerate(hand):
+            i += 1
+            print('('+ str(i) + ') ' + card.name)
+            cardIndex.append(i)
+        cardIndex.append(i+1)
+
+        print('({}) Do discard.'.format(len(cardIndex)) )
+
+        rawInput = str(input())
+        cardsSelected = [int(i) for i in rawInput.split()]
+
+        if set(cardsSelected).issubset(cardIndex):
+            running = False
+     
+   
+    if cardIndex[-1] in cardsSelected:
+        print('No cards discarded')
+    else:
+        selectedCards = [hand[i-1] for i in cardsSelected]
+        for card in selectedCards:
+            hand.remove(card)
+            player.discard.append(card)
+        player.draw(nCards=len(cardsSelected))
+
+cellar = Card('Cellar', ['Action'], 2, uAction=cellarAction)
+
+#Chapel
+def chapelAction(player, opponents, board):
+    hand = player.hand
+    
+    cardsSelected = []
+    cardIndex = []
+    running = True
+    while running:
+        cardIndex=[]
+        cardsSelected = []
+        print('Select the cards that you wish to TRASH in the format # # #. Example: 1 2 4.')
+        print('Choose between these cards:')
+        for i, card in enumerate(hand):
+            i += 1
+            print('('+ str(i) + ') ' + card.name)
+            cardIndex.append(i)
+        cardIndex.append(i+1)
+
+        print('({}) Do TRASH.'.format(len(cardIndex)) )
+
+        rawInput = str(input())
+        cardsSelected = [int(i) for i in rawInput.split()]
+
+        if set(cardsSelected).issubset(cardIndex):
+            running = False
+     
+   
+    if cardIndex[-1] in cardsSelected:
+        print('No cards trashed')
+    else:
+        selectedCards = [hand[i-1] for i in cardsSelected]
+        for card in selectedCards:
+            hand.remove(card)
+            board.trash.append(card)
+chapel = Card('Chapel', ['Action'], 2,uAction=chapelAction)
+
+#Moat
 moat = Card('Moat', ['Action', 'Reaction'], 2, cards=2)
 
-#3 Cost
-chancellor = Card('Chancellor', ['Action'], 3, coin=2)
-
+#-----3 Cost
+#Harbinger
 def harbingerAction(player, opponents, board):
     discardPile = player.discard
     if discardPile == []:
@@ -53,17 +123,27 @@ def harbingerAction(player, opponents, board):
             print(selectedCard.name)
             player.deck.cards.insert(0, selectedCard)
             player.discard.remove(selectedCard)
+
 harbinger = Card('Harbinger', ['Action'], 3, actions=1, cards=1, uAction=harbingerAction)
 
-def merchantAction():
-    print('this is Merchant Action')
+#Merchant
+def merchantAction(player, opponents, board):
+    if silver in player.hand:
+        player.coins += 1
 merchant = Card('Merchant', ['Action'], 3, actions=1, cards=1, uAction=merchantAction)
 
-vassal = Card('Vassal', ['Action'], 3, coin=2)
+#Vassal
+def vassalAction(player, opponents, board):
+    player.draw()
+    topCard = player.hand[-1]
+    if 'Action' in topCard.ctypes:
+        print(topCard.name)
+vassal = Card('Vassal', ['Action'], 3, coin=2, uAction=vassalAction)
+
 village = Card('Village', ['Action'], 3, actions=2, cards=1)
 workshop = Card('Workshop', ['Action'], 3,)
 
-#4 Cost
+#-----4 Cost
 bureaucrat = Card('Bureaucrat', ['Action', 'Attack'], 4,)
 feast = Card('Feast', ['Action'], 4,)
 gardens = Card('Gardens', ['Victory'], 4)
@@ -74,7 +154,7 @@ remodel = Card('Remodel', ['Action'], 4,)
 smithy = Card('Smithy', ['Action'], 4, cards=3,)
 throneRoom = Card('Throne Room', ['Action'], 4,)
 
-#5 Cost
+#-----5 Cost
 bandit = Card('Bandit', ['Action', 'Attac'], 5,)
 councilRoom = Card('Council Room', ['Action'],5, buys=1)
 festival = Card('Festival', ['Action'], 5, actions=5, buys=1, coin=2)
@@ -85,23 +165,23 @@ mine = Card('Mine', ['Action'], 5,)
 sentry = Card('Sentry', ['Action'],5, cards=1, actions=1)
 witch = Card('Witch', ['Action', 'Attack'], 5, cards=2,)
 
-#6 Cost
+#-----6 Cost
 artisan = Card('Artisan', ['Action'], 6,)
 
 kindomCards = [cellar, chapel, moat, 
-                chancellor, harbinger, merchant, vassal, village, workshop,
+                harbinger, merchant, vassal, village, workshop,
                 bureaucrat, feast, gardens, militia, moneylender, poacher, remodel, smithy, throneRoom,
                 bandit, councilRoom, festival, laboratory, library, market, mine, sentry, witch,
                 artisan]
 
-#Treasure Cards
+#----------Treasure Cards
 copper = Card('Copper', ['Treasure'], 0, coin=1)
 silver = Card('Silver', ['Treasure'], 3, coin=2)
 gold = Card('Gold', ['Treasure'], 6, coin=3)
 
 treasureCards = [copper, silver, gold]
 
-#Victory Cards
+#----------Victory Cards
 estate = Card('Estate', ['Victory'], 2, vp=1)
 duchy = Card('Dutchy', ['Victory'], 5, vp=3)
 province = Card('Province', ['Victory'], 8, vp=6)
@@ -111,4 +191,4 @@ victoryCards = [estate, duchy, province, curse]
 
 if __name__ == '__main__':
     merchant.uAction()
-    print(merchant.uAction)
+    print('Expected Out Comes----------------')
