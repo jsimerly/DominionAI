@@ -180,7 +180,7 @@ class Player():
             for key, cardPile in cardDict.items():
                 card = cardPile.card
                 
-                print('({})| ${} {} <{}> |   '.format(key ,card.cost, card.name, cardPile.count), end=' ', flush=True)
+                print('({})| ${} {} <{}> |   '.format(key ,card.cost, card.name, cardPile.count), end=' ')
                 if key == 'g':
                     print('')
                     print('--- Victory Cards ---')
@@ -192,9 +192,9 @@ class Player():
                 if key == '5':
                     print('')
                 
-            print('')
-            print('--- Other ---')
-            print('(x) Do not buy a card. End Turn.')
+                print('')
+                print('--- Other ---')
+                print('(x) Do not buy a card. End Turn.')
             cardSelected = input()
 
         if cardSelected == 'x':
@@ -269,7 +269,9 @@ class Player():
         self.discard.append(card)
         self.actions -= 1
         self.selectActionCard()
-        
+    
+    
+            
 
     def playMoney(self):
         total = 0

@@ -136,12 +136,73 @@ merchant = Card('Merchant', ['Action'], 3, actions=1, cards=1, uAction=merchantA
 def vassalAction(player, opponents, board):
     player.draw()
     topCard = player.hand[-1]
-    if 'Action' in topCard.ctypes:
-        print(topCard.name)
+    player.discard.append(topCard)
+    option = 0
+    while option not in (1,2):
+        if 'Action' in topCard.ctypes:
+            print('Would you like to play {}:'.format(topCard.name))
+            print('(1) Play')
+            print('(2) Don\'t play')
+            option = int(input())
+        else: 
+            return
+
+    if option == 1:
+        player.actions += topCard.actions
+        player.buys += topCard.buys
+        player.coins += topCard.coin
+        if topCard.uAction != None:
+            topCard.uAction(player, opponents, board)
+    
 vassal = Card('Vassal', ['Action'], 3, coin=2, uAction=vassalAction)
 
+#Village
 village = Card('Village', ['Action'], 3, actions=2, cards=1)
-workshop = Card('Workshop', ['Action'], 3,)
+
+#Workshop
+def workshopAction(player, opponents, board):
+    cardDict = {
+        'c' : board.coppers,
+        's' : board.silvers,
+        'e' : board.estates,
+        'curse': board.curses,
+    }
+    under4 = [cardPile for cardPile in board.kingdomCards if cardPile.card.cost <= 4]
+    for i,cardPile in enumerate(under4):
+        cardDict[str(i+1)] = cardPile
+    
+    cardSelected = 0
+    while cardSelected not in cardDict.keys() and cardSelected != 'x':
+        print('--- Treasure Cards ---')
+        for key, cardPile in cardDict.items():
+            card = cardPile.card
+            print('({})| ${} {} <{}> |   '.format(key ,card.cost, card.name, cardPile.count), end=' ')
+            if key == 's':
+                print('')
+                print('--- Victory Cards ---')
+            if key == 'curse':
+                print('')
+                print('--- Kingdom Cards ---')
+            if key == '5':
+                print('')
+
+        print('')
+        print('--- Other ---')
+        print('(x) Do not buy a card. End Turn.')
+        cardSelected = input()
+
+    if cardSelected == 'x':
+        print(player.name + ' did not buy a card.')
+    else:
+        selectedCard = cardDict[cardSelected]
+        player.discard.append(selectedCard.card)
+        selectedCard.count -= 1
+
+
+        
+    
+
+workshop = Card('Workshop', ['Action'], 3, uAction=workshopAction)
 
 #-----4 Cost
 bureaucrat = Card('Bureaucrat', ['Action', 'Attack'], 4,)

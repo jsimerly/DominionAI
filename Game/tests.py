@@ -17,6 +17,8 @@ def cardActions(card):
     player = players[0]
 
     player.hand.append(card)
+    #player.hand.append(silver) # for merchant testing
+    #player.deck.cards.insert(0, merchant) #for vassal testing
     player.discard.extend([copper, copper, gold])
     player.actions = 1
 
@@ -64,4 +66,5 @@ if __name__ == '__main__':
     #cardActions(moat)
     cardReactions(moat)
     #cardActions(merchant) #Appended silver to hand
-    cardActions(vassal)
+    #cardActions(vassal) #added action card to top of deck
+    cardActions(workshop)
