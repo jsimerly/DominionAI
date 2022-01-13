@@ -1,7 +1,7 @@
 from cards import *
 from game import *
 
-def cardActions(card):
+def cardActions(card, reaction=False):
     nPlayers = 4
     board = Board(nPlayers)
 
@@ -16,29 +16,38 @@ def cardActions(card):
 
     player = players[0]
 
-    player.hand.append(card)
-    #player.hand.append(silver) # for merchant testing
-    #player.deck.cards.insert(0, merchant) #for vassal testing
-    player.discard.extend([copper, copper, gold])
-    player.actions = 1
+    if reaction:
+        for opponent in player.opponents:
+            opponent.hand.append(card)
+        player.hand.append(bureaucrat)
+    else:
+        player.hand.append(card)
+        #player.hand.append(silver) # for merchant testing
+        #player.deck.cards.insert(0, merchant) #for vassal testing
+        player.discard.extend([copper, copper, gold])
+        player.actions = 1
 
-    print('-----------------Test Begins--------------------')
-    #player.playActionCard(card) without moving to the next action 
-    print('Player has played ' + card.name)
-    player.actions += card.actions
-    player.buys += card.buys
-    player.coins += card.coin
-    player.hand.remove(card)
+    if reaction:
+        print('{} has played a bureacrat!'.format(player.name))
+        bureaucrat.uAction(player, player.opponents, board)
+    else:
+        print('-----------------Test Begins--------------------')
+        #player.playActionCard(card) without moving to the next action 
+        print('Player has played ' + card.name)
+        player.actions += card.actions
+        player.buys += card.buys
+        player.coins += card.coin
+        player.hand.remove(card)
 
-    if card.carddraw != 0:
-        player.draw(nCards=card.carddraw)
+        if card.carddraw != 0:
+            player.draw(nCards=card.carddraw)
 
-    if card.uAction != None:
-        print('action not nones')
-        card.uAction(player, player.opponents, board)
+        if card.uAction != None:
+            print('action not nones')
+            card.uAction(player, player.opponents, board)
 
-    player.discard.append(card)
-    player.actions -= 1
+        player.discard.append(card)
+        player.actions -= 1
     print('----------------------Outcomes----------------------')
     print('Actions: ' + str(player.actions))
     print('Coins: ' + str(player.coins))
@@ -54,8 +63,6 @@ def cardActions(card):
         print('Opponent {}\'s Hand: {}'.format(i, oppHand))
         print('Opponent {}\'s Discard: {}'.format(i, oppDiscard))
 
-def cardReactions(card):
-    pass
 
 
 if __name__ == '__main__':
@@ -64,7 +71,9 @@ if __name__ == '__main__':
     #cardActions(cellar)
     #cardActions(chapel)
     #cardActions(moat)
-    cardReactions(moat)
     #cardActions(merchant) #Appended silver to hand
     #cardActions(vassal) #added action card to top of deck
-    cardActions(workshop)
+    #cardActions(workshop)
+    #cardActions(bureaucrat)
+    #cardActions(moat, reaction=True)
+    cardActions()
