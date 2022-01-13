@@ -209,8 +209,9 @@ class Player():
             else:
                 self.selectBuyCard()
 
-
-
+    def getReactionCards(self):
+        reactionCards = [card for card in self.hand if 'Reaction' in card.ctypes]
+        return reactionCards
 
 
     def getActionsCard(self):

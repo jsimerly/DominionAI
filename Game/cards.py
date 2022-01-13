@@ -198,14 +198,32 @@ def workshopAction(player, opponents, board):
         player.discard.append(selectedCard.card)
         selectedCard.count -= 1
 
-
-        
-    
-
 workshop = Card('Workshop', ['Action'], 3, uAction=workshopAction)
 
 #-----4 Cost
-bureaucrat = Card('Bureaucrat', ['Action', 'Attack'], 4,)
+#Bureacrat
+def bureacratAction(player, opponents, board):
+    player.deck.cards.insert(0, silver)
+    board.silvers.count -= 1
+
+    for opponent in opponents:
+        reactionCards = opponent.getReactionCards()
+        if reactionCards == []:
+            reveal = False
+            for card in opponent.hand:
+                if 'Victory' in card.ctypes and reveal == False:
+                    print('{} reveals |{}| and places it on the top of their deck.'.format(opponent.name, card.name))
+                    opponent.hand.remove(card)
+                    opponent.deck.cards.insert(0, card)
+
+                    reveal = True
+            if reveal == False:
+                print('{} reveals thier hand: {}'.format(opponent.name, str([card.name for card in opponent.hand])))
+        else:
+            print('{} reacts with has a |{}|'.format(opponent.name, reactionCards[0].name))
+
+bureaucrat = Card('Bureaucrat', ['Action', 'Attack'], 4, uAction=bureacratAction)
+
 feast = Card('Feast', ['Action'], 4,)
 gardens = Card('Gardens', ['Victory'], 4)
 militia = Card('Milita', ['Action', 'Attack'], 4, coin=2)
