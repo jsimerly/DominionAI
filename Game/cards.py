@@ -14,6 +14,21 @@ class Card():
         self.vp = vp
         self.uAction = uAction
 
+#----------Treasure Cards
+copper = Card('Copper', ['Treasure'], 0, coin=1)
+silver = Card('Silver', ['Treasure'], 3, coin=2)
+gold = Card('Gold', ['Treasure'], 6, coin=3)
+
+treasureCards = [copper, silver, gold]
+
+#----------Victory Cards
+estate = Card('Estate', ['Victory'], 2, vp=1)
+duchy = Card('Dutchy', ['Victory'], 5, vp=3)
+province = Card('Province', ['Victory'], 8, vp=6)
+curse = Card('Curse', ['Curse'], 0, vp=-1)
+
+victoryCards = [estate, duchy, province, curse]
+
 #----------Kingdom Cards
 #-----2 Cost
 
@@ -224,17 +239,239 @@ def bureacratAction(player, opponents, board):
 
 bureaucrat = Card('Bureaucrat', ['Action', 'Attack'], 4, uAction=bureacratAction)
 
-feast = Card('Feast', ['Action'], 4,)
+#Gardens
 gardens = Card('Gardens', ['Victory'], 4)
-militia = Card('Milita', ['Action', 'Attack'], 4, coin=2)
-moneylender = Card('Moneylender', ['Action'], 4,)
-poacher = Card('Poacher', ['Action'], 4, actions=1, coin=1)
-remodel = Card('Remodel', ['Action'], 4,)
+
+#Militia
+def militiaAction(player, opponents, board):
+    for opponent in opponents:
+        reactionCards = opponent.getReactionCards()
+        if reactionCards == []:
+            
+            hand = opponent.hand
+            cardsSelected = []
+            cardIndex = []
+            running = True
+
+            while running:
+                cardIndex=[]
+                cardsSelected = []
+                print('------- {}\'s choice ------'.format(opponent.name))
+                print('Select the cards that you wish to discard in the format # #. Example: 1 2.')
+                print('Choose between these cards: (MUST select 2 cards)')
+                for i, card in enumerate(hand):
+                    i += 1
+                    print('('+ str(i) + ') ' + card.name)
+                    cardIndex.append(i)
+
+                rawInput = str(input())
+                cardsSelected = [int(i) for i in rawInput.split()]
+
+                if set(cardsSelected).issubset(cardIndex) and len(cardsSelected) == 2:
+                    running = False
+            
+            
+            selectedCards = [hand[i-1] for i in cardsSelected]
+            for card in selectedCards:
+                hand.remove(card)
+                opponent.discard.append(card)
+            
+            print('{}\'s new hand is: {}'.format(opponent.name, str([card.name for card in hand])))
+        else:
+             print('{} reacts with has a |{}|'.format(opponent.name, reactionCards[0].name))
+
+militia = Card('Milita', ['Action', 'Attack'], 4, coin=2, uAction=militiaAction)
+
+#Moneylender:
+def moneylenderAction(player, opponents, board):
+    if copper not in player.hand:
+        print('No copper to trash and cannot play moneylender')
+        player.actions += 1
+    else:
+        option = 0
+        while option not in (1,2):
+            print('Select form the following:')
+            print('(1) TRASH a copper for +3 coins')
+            print('(2) Do not trash')
+            option = int(input())
+
+        if option == 1:
+            print('{} TRASHED a copper and gained 3 coins.'.format(player.name))
+            player.coins += 3
+            player.hand.remove(copper)
+            board.trash.append(copper)
+        else:
+            print('{} decides not to play Moneylender.'.format(player.name))
+            player.actions += 1
+
+moneylender = Card('Moneylender', ['Action'], 4,uAction=moneylenderAction)
+
+#Poacher
+def poacherAction(player, opponents, board):
+    emptySupplyCounter = 0
+    for cardPile in board.kingdomCards:
+        if cardPile.count == 0:
+            emptySupplyCounter += 1
+    
+    if emptySupplyCounter != 0:
+        print('Discard {} cards.'.format(str(emptySupplyCounter)))
+
+        cardsSelected = []
+        cardIndex = []
+        running = True
+
+        while running:
+            cardIndex=[]
+            cardsSelected = []
+            print('Select the cards that you wish to discard in the format # #. Example: 1 2.')
+            print('Choose between these cards: (MUST select {} cards)'.format(str(emptySupplyCounter)))
+            for i, card in enumerate(player.hand):
+                i += 1
+                print('('+ str(i) + ') ' + card.name)
+                cardIndex.append(i)
+
+            rawInput = str(input())
+            cardsSelected = [int(i) for i in rawInput.split()]
+
+            if set(cardsSelected).issubset(cardIndex) and len(cardsSelected) == emptySupplyCounter:
+                running = False
+        
+        
+        selectedCards = [player.hand[i-1] for i in cardsSelected]
+        for card in selectedCards:
+            player.hand.remove(card)
+            player.discard.append(card)
+            
+    else:
+        print('No discard needed.')
+
+poacher = Card('Poacher', ['Action'], 4, actions=1, coin=1, uAction=poacherAction)
+
+#Remodel
+def remodelAction(player, opponents, board):
+    hand = player.hand
+
+    cardIndex = []
+    cardSelected = 0
+    while cardSelected not in cardIndex:
+        print('Choose between these cards:')
+        for i, card in enumerate(hand):
+            i += 1
+            print('('+ str(i) + ') ' + card.name)
+            cardIndex.append(i)
+        cardIndex.append(i+1)
+
+        print('({}) Do not remodel.'.format(len(cardIndex)))
+
+        cardSelected = int(input())
+    
+    if cardSelected == cardIndex[-1]:
+        print('{} decided not to remodel.'.format(player.name))
+        player.actions += 1
+    else:
+        selectedCard = hand[cardSelected-1]
+        hand.remove(selectedCard)
+        board.trash.append(selectedCard)
+        maxValue = selectedCard.cost + 2
+
+        cardDict = {}
+        
+        eligableTCards = [cardPile for cardPile in board.treasureCards if cardPile.card.cost <= maxValue]
+        for cardPile in eligableTCards:
+            if cardPile.card.name == 'Copper':
+                cardDict['c'] = cardPile
+            if cardPile.card.name == 'Silver':
+                cardDict['s'] = cardPile
+            if cardPile.card.name == 'Gold':
+                cardDict['g'] = cardPile
+
+        eligableVCards = [cardPile for cardPile in board.vicCards if cardPile.card.cost <= maxValue]
+        for cardPile in eligableVCards:
+            if cardPile.card.name == 'Estate':
+                cardDict['e'] = cardPile
+            if cardPile.card.name == 'Duchy':
+                cardDict['d'] == cardPile
+            if cardPile.card.name == 'Provinces':
+                cardDict['p'] == cardPile
+            if cardPile.card.name == 'Curse':
+                cardDict['curse'] = cardPile
+        
+        
+
+        eligableKCards = [cardPile for cardPile in board.kingdomCards if cardPile.card.cost <= maxValue]
+        for i,cardPile in enumerate(eligableKCards):
+            cardDict[str(i+1)] = cardPile
+
+        cardSelected = 0
+        while cardSelected not in cardDict.keys():
+            print('--- Treasure Cards ---')
+            for key, cardPile in cardDict.items():
+                card = cardPile.card
+                print('({})| ${} {} <{}> |   '.format(key ,card.cost, card.name, cardPile.count), end=' ')
+                if key == 's':
+                    print('')
+                    print('--- Victory Cards ---')
+                if key == 'curse':
+                    print('')
+                    print('--- Kingdom Cards ---')
+                if key == '5':
+                    print('')
+
+            print('')
+            print('Select which card you would like to obtain.')
+            cardSelected = str(input())
+        
+        selectedCard = cardDict[cardSelected]
+        player.discard.append(selectedCard.card)
+        selectedCard.count -= 1   
+    
+remodel = Card('Remodel', ['Action'], 4, uAction=remodelAction)
+
+#Smithy
 smithy = Card('Smithy', ['Action'], 4, cards=3,)
-throneRoom = Card('Throne Room', ['Action'], 4,)
+
+#Throne Room
+def throneRoomAction(player, opponents, board):
+    hand = player.hand
+
+    actionCards = player.getActionsCard()
+
+    cardSelected = 0
+    cardIndex = []
+    while cardSelected not in cardIndex:    
+        print('Select which card you would like to play twice.')
+        for i, card in enumerate(actionCards):
+            print('({}) {}'.format(i+1, card.name))
+            cardIndex.append(i+1)
+
+        cardSelected = int(input())
+
+    selectedCard = actionCards[cardSelected-1]
+
+    def playCard(selectedCard):
+        player.actions += selectedCard.actions
+        player.buys += selectedCard.buys
+        player.coins += selectedCard.coin
+
+        if selectedCard.carddraw != 0:
+            player.draw(nCards=selectedCard.carddraw)
+
+        if card.uAction != None:
+            selectedCard.uAction(player, player.opponents, board)
+
+    playCard(selectedCard)
+    playCard(selectedCard)
+    player.hand.remove(selectedCard)
+    player.discard.append(selectedCard)
+
+throneRoom = Card('Throne Room', ['Action'], 4,uAction=throneRoomAction)
 
 #-----5 Cost
-bandit = Card('Bandit', ['Action', 'Attac'], 5,)
+#Bandit
+def banditAction(player, opponents, board):
+    pass
+
+bandit = Card('Bandit', ['Action', 'Attac'], 5, uAction=banditAction)
 councilRoom = Card('Council Room', ['Action'],5, buys=1)
 festival = Card('Festival', ['Action'], 5, actions=5, buys=1, coin=2)
 laboratory = Card('Laboratory', ['Action'], 5, cards=2, actions=1)
@@ -249,24 +486,10 @@ artisan = Card('Artisan', ['Action'], 6,)
 
 kindomCards = [cellar, chapel, moat, 
                 harbinger, merchant, vassal, village, workshop,
-                bureaucrat, feast, gardens, militia, moneylender, poacher, remodel, smithy, throneRoom,
+                bureaucrat, gardens, militia, moneylender, poacher, remodel, smithy, throneRoom,
                 bandit, councilRoom, festival, laboratory, library, market, mine, sentry, witch,
                 artisan]
 
-#----------Treasure Cards
-copper = Card('Copper', ['Treasure'], 0, coin=1)
-silver = Card('Silver', ['Treasure'], 3, coin=2)
-gold = Card('Gold', ['Treasure'], 6, coin=3)
-
-treasureCards = [copper, silver, gold]
-
-#----------Victory Cards
-estate = Card('Estate', ['Victory'], 2, vp=1)
-duchy = Card('Dutchy', ['Victory'], 5, vp=3)
-province = Card('Province', ['Victory'], 8, vp=6)
-curse = Card('Curse', ['Curse'], 0, vp=-1)
-
-victoryCards = [estate, duchy, province, curse]
 
 if __name__ == '__main__':
     merchant.uAction()

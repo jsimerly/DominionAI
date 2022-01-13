@@ -24,6 +24,8 @@ def cardActions(card, reaction=False):
         player.hand.append(card)
         #player.hand.append(silver) # for merchant testing
         #player.deck.cards.insert(0, merchant) #for vassal testing
+        #player.board.kingdomCards[0].count = 0 #for poacher testing
+        #player.hand.append(village) #for throneroom testings
         player.discard.extend([copper, copper, gold])
         player.actions = 1
 
@@ -43,7 +45,6 @@ def cardActions(card, reaction=False):
             player.draw(nCards=card.carddraw)
 
         if card.uAction != None:
-            print('action not nones')
             card.uAction(player, player.opponents, board)
 
         player.discard.append(card)
@@ -67,7 +68,6 @@ def cardActions(card, reaction=False):
 
 if __name__ == '__main__':
     #cardActions(harbinger)
-    #print('------------------Expected Outcomes-----------------------')
     #cardActions(cellar)
     #cardActions(chapel)
     #cardActions(moat)
@@ -76,4 +76,8 @@ if __name__ == '__main__':
     #cardActions(workshop)
     #cardActions(bureaucrat)
     #cardActions(moat, reaction=True)
-    cardActions()
+    #cardActions(militia)
+    #cardActions(moneylender)
+    #cardActions(poacher) #Emptied a supply file
+    #cardActions(remodel)
+    #cardActions(throneRoom) #appened actioncard to hand
