@@ -469,20 +469,205 @@ throneRoom = Card('Throne Room', ['Action'], 4,uAction=throneRoomAction)
 #-----5 Cost
 #Bandit
 def banditAction(player, opponents, board):
-    pass
+    player.discard.append(gold)
+    board.golds.count -= 1
+
+
+    for opponent in opponents:
+        print('- {} -'.format(opponent.name))
+        reactionCards = opponent.getReactionCards()
+        if reactionCards == []:
+            top2Cards = opponent.deck.getTopCard(nCards=2)
+            for card in top2Cards:
+                if card == gold or card == silver:
+                    print('{} TRASHED'.format(card.name))
+                else:
+                    print('{} has been discarded'.format(card.name))
+        else:
+             print('{} reacts with has a |{}|'.format(opponent.name, reactionCards[0].name))
 
 bandit = Card('Bandit', ['Action', 'Attac'], 5, uAction=banditAction)
-councilRoom = Card('Council Room', ['Action'],5, buys=1)
+
+#Council Room
+def councilRoomAction(players, opponents, board):
+    for opponent in opponents:
+        opponent.draw()
+
+councilRoom = Card('Council Room', ['Action'],5, buys=1,cards=4 ,uAction=councilRoomAction)
+
+#Festival
 festival = Card('Festival', ['Action'], 5, actions=5, buys=1, coin=2)
+
+#Laboratory
 laboratory = Card('Laboratory', ['Action'], 5, cards=2, actions=1)
-library = Card('Library', ['Action'], 5,)
+
+#Library
+def libraryAction(player, opponents, board):
+    while len(player.hand) < 7:
+        player.draw()
+        drawnCard = player.hand[-1]
+        if 'Action' in drawnCard.ctypes:
+            option = 0
+            while option not in (1,2):
+                print('Keep {}?:'.format(drawnCard.name))
+                print('(1) Keep')
+                print('(2) Discard')
+
+                option = int(input())
+
+            if option != 1:
+                player.hand.remove(drawnCard)
+                player.discard.append(drawnCard)
+
+library = Card('Library', ['Action'], 5, uAction=libraryAction)
+
+#Market
 market = Card('Market', ['Action'], 5, cards=1, actions=1, buys=1, coin=1)
-mine = Card('Mine', ['Action'], 5,)
-sentry = Card('Sentry', ['Action'],5, cards=1, actions=1)
-witch = Card('Witch', ['Action', 'Attack'], 5, cards=2,)
+
+#Mine
+def mineAction(player, opponents, board):
+    treasureCards = []
+    cardIndex = []
+    for i,card in enumerate(player.hand):
+        if card == copper or card == silver:
+            treasureCards.append(card)
+            cardIndex.append(i+1)
+    
+    if treasureCards == []:
+        player.actions += 1
+        return
+
+    cardSelected = 0
+    while cardSelected not in cardIndex:
+        print('Select which treasure you want to upgrade: ')
+        for i, card in enumerate(treasureCards):
+            print('({}) {}'.format(str(i+1), card.name))
+
+        cardSelected = int(input())
+
+    selectedCard = treasureCards[cardSelected-1]
+    if selectedCard == copper:
+        player.hand.remove(copper)
+        board.trash.append(copper)
+        player.hand.append(silver)
+    else:
+        player.hand.remove(silver)
+        board.trash.append(silver)
+        player.hand.append(gold)
+        
+mine = Card('Mine', ['Action'], 5, uAction=mineAction)
+
+#sentry
+def sentryAction(player, opponents, board):
+    player.draw(nCards=2)
+    top2Cards = player.hand[-2:]
+
+    keptCards = []
+    for card in top2Cards:
+        option = 0
+        while option not in (1,2,3):
+            print('For |{}| Discard, Trash, or Top Deck:'.format(card.name))
+            print('(1) Discard')
+            print('(2) TRASH')
+            print('(3) Top Deck')
+
+            option = int(input())
+
+            player.hand.remove(card)
+            if option == 1:
+                player.discard.append(card)
+            elif option == 2:
+                board.trash.append(card)
+            else:
+                keptCards.append(card)
+
+    if len(keptCards) == 2:
+        option = 0
+        while option not in (1,2):
+            print('Which card would you like to be on top of the deck?')
+            print('(non selected card will be second form the top):')
+            print('(1) {}'.format(keptCards[0].name))
+            print('(2) {}'.format(keptCards[1].name))
+
+            option = int(input())
+
+        if option == 1:
+            player.deck.cards.insert(0, keptCards[1])
+            player.deck.cards.insert(0, keptCards[0])
+        else:
+            player.deck.cards.insert(0, keptCards[0])
+            player.deck.cards.insert(0, keptCards[1])
+    elif len(keptCards) == 1:
+        player.deck.insert(0, keptCards[0])
+    else:
+        print('No cards put back on deck.')
+
+sentry = Card('Sentry', ['Action'],5, cards=1, actions=1, uAction=sentryAction)
+
+#Witch
+def witchAction(player, opponents, board):
+    for opponent in opponents:
+        opponent.discard.append(curse)
+        board.curses.count -= 1
+    
+witch = Card('Witch', ['Action', 'Attack'], 5, cards=2, uAction=witchAction)
 
 #-----6 Cost
-artisan = Card('Artisan', ['Action'], 6,)
+#Artisan
+def artisanAction(player, opponents, board):
+    cardDict = {
+        'c' : board.coppers,
+        's' : board.silvers,
+        'e' : board.estates,
+        'd' : board.dutchies,
+        'curse': board.curses,
+    }
+    under5 = [cardPile for cardPile in board.kingdomCards if cardPile.card.cost <= 5]
+    for i,cardPile in enumerate(under5):
+        cardDict[str(i+1)] = cardPile
+    
+    cardSelected = 0
+    while cardSelected not in cardDict.keys() and cardSelected != 'x':
+        print('--- Treasure Cards ---')
+        for key, cardPile in cardDict.items():
+            card = cardPile.card
+            print('({})| ${} {} <{}> |   '.format(key ,card.cost, card.name, cardPile.count), end=' ')
+            if key == 's':
+                print('')
+                print('--- Victory Cards ---')
+            if key == 'curse':
+                print('')
+                print('--- Kingdom Cards ---')
+            if key == '5':
+                print('')
+
+        print('')
+        print('--- Other ---')
+        print('(x) Do not buy a card. End Turn.')
+        cardSelected = input()
+
+    if cardSelected == 'x':
+        print(player.name + ' did not Select a card.')
+    else:
+        selectedCard = cardDict[cardSelected]
+        player.hand.append(selectedCard.card)
+        selectedCard.count -= 1
+
+        option = 0
+        cardIndex = []
+        while option not in cardIndex:
+            print('Select a card from your hand to Top Deck:')
+            for i,card in enumerate(player.hand):
+                print('({}) {}'.format(str(i+1),card.name))
+                cardIndex.append(i+1)
+
+            option = int(input())
+
+        topDeckCard = player.hand[option-1]
+        player.hand.remove(topDeckCard)
+        player.deck.cards.insert(0,topDeckCard)
+
+artisan = Card('Artisan', ['Action'], 6, uAction=artisanAction)
 
 kindomCards = [cellar, chapel, moat, 
                 harbinger, merchant, vassal, village, workshop,

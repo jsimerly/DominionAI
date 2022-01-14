@@ -23,9 +23,9 @@ def cardActions(card, reaction=False):
     else:
         player.hand.append(card)
         #player.hand.append(silver) # for merchant testing
-        #player.deck.cards.insert(0, merchant) #for vassal testing
+        #player.deck.cards.insert(0, merchant) #for vassal testing and library
         #player.board.kingdomCards[0].count = 0 #for poacher testing
-        #player.hand.append(village) #for throneroom testings
+        #player.hand.append(village) #for throneroom testings and library
         player.discard.extend([copper, copper, gold])
         player.actions = 1
 
@@ -81,3 +81,13 @@ if __name__ == '__main__':
     #cardActions(poacher) #Emptied a supply file
     #cardActions(remodel)
     #cardActions(throneRoom) #appened actioncard to hand
+    #cardActions(bandit)
+    #cardActions(councilRoom)
+    #cardActions(festival)
+    #cardActions(laboratory)
+    #cardActions(library)
+    #cardActions(market)
+    #cardActions(mine)
+    #cardActions(sentry)
+    #cardActions(witch)
+    #cardActions(artisan)
