@@ -126,6 +126,7 @@ class Player():
         self.buys = 0
         self.coins = 0
         self.myTurn = False
+        self.score = 0
 
         self.draw(nCards=5)
 
@@ -192,9 +193,9 @@ class Player():
                 if key == '5':
                     print('')
                 
-                print('')
-                print('--- Other ---')
-                print('(x) Do not buy a card. End Turn.')
+            print('')
+            print('--- Other ---')
+            print('(x) Do not buy a card. End Turn.')
             cardSelected = input()
 
         if cardSelected == 'x':
@@ -265,7 +266,7 @@ class Player():
             self.draw(nCards=card.carddraw)
 
         if card.uAction != None:
-            card.uAction()
+            card.uAction(self, self.opponents, self.board)
 
         self.discard.append(card)
         self.actions -= 1
@@ -363,7 +364,7 @@ def runGame():
 
     #Start game
     playerTurn = 0
-    roundCounter = 0
+    roundCounter = 1
     MAX_ROUNDS = 5
 
     while checkPiles(board, nPlayers) and checkProvince(board) and roundCounter < MAX_ROUNDS:
@@ -382,6 +383,32 @@ def runGame():
             roundCounter += 1
             print('------------------------------------------------')
             print('Beginning Round ' + str(roundCounter))
+    
+    print('=================The Game Has Ended======================')
+    for player in players:
+        allCards = []
+        allCards.extend(player.discard)
+        allCards.extend(player.deck.cards)
+        allCards.extend(player.hand)
+
+        gardenCount = 0
+        for card in allCards:
+            player.score += card.vp
+            if card == gardens:
+                gardenCount += 1
+
+        deckTotal = len(allCards)
+        gardenPoints = gardenCount * (deckTotal//10)
+        player.score += gardenPoints
+    
+
+    rankedPlayers = sorted(players, key=lambda player:player.score, reverse=True)
+
+    place = 1
+    print('{} WINS!!'.format(rankedPlayers[0].name))
+    for player in rankedPlayers:
+        print('{}) {}: {}pts'.format(str(place), player.name, player.score))
+        place += 1
 
 
 
