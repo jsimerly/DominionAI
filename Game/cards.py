@@ -2,7 +2,7 @@
 class Card():
     def __init__(self, name, cTypes, cost,
                 actions=0, cards=0, buys=0, 
-                trash=0, coin=0, vp=0, uAction = None):
+                trash=0, coin=0, vp=0, abrev=None,uAction = None):
         self.name = name
         self.ctypes = cTypes
         self.cost = cost
@@ -13,19 +13,20 @@ class Card():
         self.coin = coin
         self.vp = vp
         self.uAction = uAction
+        self.abrev = abrev
 
 #----------Treasure Cards
-copper = Card('Copper', ['Treasure'], 0, coin=1)
-silver = Card('Silver', ['Treasure'], 3, coin=2)
-gold = Card('Gold', ['Treasure'], 6, coin=3)
+copper = Card('Copper', ['Treasure'], 0, coin=1, abrev='c')
+silver = Card('Silver', ['Treasure'], 3, coin=2, abrev='s')
+gold = Card('Gold', ['Treasure'], 6, coin=3, abrev='g')
 
 treasureCards = [copper, silver, gold]
 
 #----------Victory Cards
-estate = Card('Estate', ['Victory'], 2, vp=1)
-duchy = Card('Dutchy', ['Victory'], 5, vp=3)
-province = Card('Province', ['Victory'], 8, vp=6)
-curse = Card('Curse', ['Curse'], 0, vp=-1)
+estate = Card('Estate', ['Victory'], 2, vp=1, abrev='e')
+duchy = Card('Dutchy', ['Victory'], 5, vp=3, abrev='d')
+province = Card('Province', ['Victory'], 8, vp=6, abrev='p')
+curse = Card('Curse', ['Curse'], 0, vp=-1, abrev='curse')
 
 victoryCards = [estate, duchy, province, curse]
 
@@ -191,7 +192,7 @@ def workshopAction(player, opponents, board):
         print('--- Treasure Cards ---')
         for key, cardPile in cardDict.items():
             card = cardPile.card
-            print('({})| ${} {} <{}> |   '.format(key ,card.cost, card.name, cardPile.count), end=' ')
+            print('({}) | ${} {} <{}> |   '.format(key ,card.cost, card.name, cardPile.count), end=' ')
             if key == 's':
                 print('')
                 print('--- Victory Cards ---')
