@@ -99,8 +99,8 @@ class Board():
         pile8 = CardPile(sampledCards[8], nPlayers)
         pile9 = CardPile(sampledCards[9], nPlayers)
 
-        self.kingdomCards=[pile0, pile1, pile2, pile3, pile4, 
-                        pile5, pile6, pile7, pile8, pile9]
+        self.kingdomCards = sorted([pile0, pile1, pile2, pile3, pile4, 
+                        pile5, pile6, pile7, pile8, pile9], key=lambda pile:pile.cardCost)
         
         #Victory Cards
         self.estates = CardPile(estate, nPlayers)
@@ -109,7 +109,6 @@ class Board():
 
         self.vicCards = [self.estates, self.dutchies, self.provinces, self.curses]
         
-
         #Trash
         self.trash = []
 
@@ -227,33 +226,122 @@ class Player():
             self.startBuyPhase()
         else:
             if self.actions != 0:
+                phrase = 'Choose between these cards'
+                cardSelected = self.selectCardsFromHand(actionsCards, selectPhrase=phrase)
                 
-                
-                cardIndex = []
-                cardSelected = 0
-                while cardSelected not in cardIndex:
-                    print('Choose between these cards:')
-                    for i, card in enumerate(actionsCards):
-                        i += 1
-                        print('('+ str(i) + ') ' + card.name)
-                        cardIndex.append(i)
-                    cardIndex.append(i+1)
-
-                    print('({}) Do not play action card.'.format(len(cardIndex)))
-
-                    cardSelected = int(input())
-
-                if cardSelected == cardIndex[-1]:
+                if cardSelected == None:
                     self.startBuyPhase()
                 else:
-                    selectedCard = actionsCards[cardSelected-1]
-
-                    self.playActionCard(selectedCard)
+                    self.playActionCard(cardSelected)
             else:
                 print('Out of Actions, moving to buy phase')
                 self.startBuyPhase()
+
+    def selectCardPile(self, selectPhrase = None, costMax = 15):
+        cardDict = {}
+
+        for cardPile in self.board.treasureCards:
+            cardDict[cardPile.card.abrev] = cardPile
+        for cardPile in self.board.vicCards:
+            cardDict[cardPile.card.abrev] = cardPile
+        for i, cardPile in enumerate(self.board.kingdomCards):
+            cardDict[str(i+1)] = cardPile
+
+        if costMax != 15:
+            for key, item in cardDict.items():
+                if item.cost > costMax:
+                    del cardDict[key]
+
+        running = True
+
+        while running:
+            if selectPhrase == None:
+                print('Please Select a card to buy!')
+            else:
+                print(selectPhrase)
+            
+            print('--- Treasure Cards ---')
+            firstV = False
+            firstK = False
+            for key, cardPile in cardDict.items():
+                card = cardPile.card
+
+                if card in victoryCards and firstV == False:
+                    print('')
+                    print('--- Victory Cards ---')
+                    firstV = True
+                
+                if card in kindomCards and firstK == False:
+                    print('')
+                    print('--- Kingdom Cards ---')
+                    firstK = True
+
+                if key == '6':
+                    print('')
+            
+                print('({}) | ${} {} | <{}>  '.format(key, card.cost, card.name, cardPile.count), end='')
+
+                
+            
+            print('')
+            print('--- Other ---')
+            print('(x) Do not select a card.')
+            cardAbrSelected = input()
+
+            if set(cardAbrSelected).issubset(cardDict.keys()) or cardAbrSelected == 'x':
+                running = False
+
+        if cardAbrSelected == 'x':
+            print('No card selected.')
+        else:
+            cardPileSelected = cardDict[cardAbrSelected]
+            return cardPileSelected
+                
+            
         
-    
+    def selectCardsFromHand(self, cardsToSelectFrom ,selectPhrase, nCardsSelected = 1,):
+        cardDict = {}
+        for i, card in enumerate(cardsToSelectFrom):
+            cardDict[str(1 + i)] = card
+                   
+        running = True
+        while running:
+            print(selectPhrase)
+            print('Choose between these cards:')
+            for abrev ,card in cardDict.items():
+                print('({})| ${}  {} |'.format(abrev, card.cost, card.name))
+            print('(x) Do not select.')
+                
+            cardAbrSelected = str(input())
+
+            if nCardsSelected == 1:
+                if cardAbrSelected in cardDict.keys() or cardAbrSelected == 'x':
+                    running = False
+            else:
+                cardAbrSelected = [i for i in cardAbrSelected.split()]
+                if len(cardAbrSelected) <= nCardsSelected:
+                    if set(cardAbrSelected).issubset(cardDict.keys()) or cardAbrSelected == ['x']:
+                        running = False
+                else:
+                    print('Too many cards selected.')
+        
+        if cardAbrSelected == 'x' or cardAbrSelected == ['x']:
+            print('You decided not to select any cards.')
+            return None
+        else:
+            if nCardsSelected == 1:
+                cardSelected = cardDict[cardAbrSelected]
+                return cardSelected
+            else:
+                cardsSelected = []
+                for abr in cardAbrSelected:
+                    cardsSelected.append(cardDict[abr])
+                return cardsSelected
+                
+
+
+                
+
     def playActionCard(self, card):
         print('Player has played ' + card.name)
         self.actions += card.actions
