@@ -326,6 +326,11 @@ class Player():
             self.board.trash.append(card)
         else:
             self.board.trash.extend(card)
+
+    def boardToHand(self, cardPile):
+        self.hand.append(cardPile.card)
+        cardPile.count += 1
+            
             
 
     def playMoney(self):
