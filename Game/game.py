@@ -124,8 +124,8 @@ class Player():
         self.actions = 0
         self.buys = 0
         self.coins = 0
-        self.myTurn = False
         self.score = 0
+        self.phase = None
 
         self.draw(nCards=5)
 
@@ -139,75 +139,33 @@ class Player():
         self.myTurn = True
         self.actions = 1
         self.buys = 1
-        hand = [card.name for card in self.hand]
-        print('Hand: {}'.format(hand))
+
+        self.lookAtHand()
+        self.actionPhase()
+    
+    def actionPhase(self):
         print('----- Action Phase -----')
+        self.phase = 'Action'
         self.selectActionCard()
-        actionCards = self.getActionsCard()
+
+    def startBuyPhase(self):
+        print('----- Buy Phase -----')
+        self.phase = 'Buy'
+        self.playMoney()
+        self.selectBuyCard()
     
     def lookAtHand(self):
         cardNames = [card.name for card in self.hand]
         print(cardNames)
 
-    def startBuyPhase(self):
-        print('----- Buy Phase -----')
-        self.playMoney()
-        self.selectBuyCard()
-
-    def getBuyCards(self):
-        cards = [cardPile for cardPile in self.board.kingdomCards]
-        return cards
-
     def selectBuyCard(self):
-        cardPiles = self.getBuyCards()
-        
-        cardDict = {
-            'c' : self.board.coppers,
-            's' : self.board.silvers,
-            'g' : self.board.golds,
-            'e' : self.board.estates,
-            'd' : self.board.dutchies,
-            'p' : self.board.provinces,
-            'curse' : self.board.curses,
-        }
-        for i, cardPile in enumerate(cardPiles):
-            cardDict[str(i+1)] = cardPile
+        selectedPile = self.selectCardPile()
+        self.buyCard(selectedPile)
 
-        cardSelected = 0
-        while cardSelected not in cardDict.keys() and cardSelected != 'x':
-            print('Budget: $' + str(self.coins))
-            print('--- Treasure Cards ---')
-            for key, cardPile in cardDict.items():
-                card = cardPile.card
-                
-                print('({})| ${} {} <{}> |   '.format(key ,card.cost, card.name, cardPile.count), end=' ')
-                if key == 'g':
-                    print('')
-                    print('--- Victory Cards ---')
-
-                if key == 'curse':
-                    print('')
-                    print('--- Kingdom Cards ---')
-                
-                if key == '5':
-                    print('')
-                
-            print('')
-            print('--- Other ---')
-            print('(x) Do not buy a card. End Turn.')
-            cardSelected = input()
-
-        if cardSelected == 'x':
-            print(self.name + ' did not buy a card.')
+        if self.buys <= 0:
             self.endTurn()
         else:
-            selectedCard = cardDict[cardSelected]
-            self.buyCard(selectedCard)
-
-            if self.buys == 0:
-                self.endTurn()
-            else:
-                self.selectBuyCard()
+            self.selectBuyCard()
 
     def getReactionCards(self):
         reactionCards = [card for card in self.hand if 'Reaction' in card.ctypes]
@@ -227,7 +185,7 @@ class Player():
         else:
             if self.actions != 0:
                 phrase = 'Choose between these cards'
-                cardSelected = self.selectCardsFromHand(actionsCards, selectPhrase=phrase)
+                cardSelected = self.selectCards(actionsCards, selectPhrase=phrase)
                 
                 if cardSelected == None:
                     self.startBuyPhase()
@@ -281,8 +239,6 @@ class Player():
             
                 print('({}) | ${} {} | <{}>  '.format(key, card.cost, card.name, cardPile.count), end='')
 
-                
-            
             print('')
             print('--- Other ---')
             print('(x) Do not select a card.')
@@ -297,9 +253,7 @@ class Player():
             cardPileSelected = cardDict[cardAbrSelected]
             return cardPileSelected
                 
-            
-        
-    def selectCardsFromHand(self, cardsToSelectFrom ,selectPhrase, nCardsSelected = 1,):
+    def selectCards(self, cardsToSelectFrom ,selectPhrase, nCardsSelected = 1,):
         cardDict = {}
         for i, card in enumerate(cardsToSelectFrom):
             cardDict[str(1 + i)] = card
@@ -339,28 +293,39 @@ class Player():
                 return cardsSelected
                 
 
-
-                
-
     def playActionCard(self, card):
         print('Player has played ' + card.name)
         self.actions += card.actions
+        self.actions -= 1
         self.buys += card.buys
         self.coins += card.coin
-        
-        self.hand.remove(card)
 
         if card.carddraw != 0:
             self.draw(nCards=card.carddraw)
 
+        self.cardAction(card)
+        self.handToDiscard(card)
+
+        self.selectActionCard()
+
+    def cardAction(self, card):
         if card.uAction != None:
             card.uAction(self, self.opponents, self.board)
 
-        self.discard.append(card)
-        self.actions -= 1
-        self.selectActionCard()
+    def handToDiscard(self, card):
+        self.hand.remove(card)
+        if type(card) != list:
+          
+            self.discard.append(card)
+        else:
+            self.discard.extend(card)
     
-    
+    def handToTrash(self, card):
+        self.hand.remove(card)
+        if type(card) != list:
+            self.board.trash.append(card)
+        else:
+            self.board.trash.extend(card)
             
 
     def playMoney(self):
@@ -368,6 +333,7 @@ class Player():
         for card in self.hand:
             if 'Treasure' in card.ctypes:
                 total += card.coin
+                self.handToDiscard(card)
 
         self.coins += total
             
@@ -380,17 +346,14 @@ class Player():
                 self.coins -= card.cost 
                 self.buys -= 1
 
-                print(self.name + ' bought a ' +card.name)
-
-                
+                print(self.name + ' bought a ' +card.name)                
             else:
                 print('You do not have enough money, choose another option')
         else:
             print('Card Pile is Empty, choose another option')
 
-
     def endTurn(self):
-        self.myTurn = False
+        self.phase = None
         self.actions = 0
         self.buys = 0
         self.coins = 0
@@ -398,10 +361,11 @@ class Player():
         self.deck.discard.extend(self.hand)
         self.hand = []
         self.draw(nCards=5)
-        hand = [card.name for card in self.hand]
+        
 
         print(self.name + "'s turn has ended.")
-        print('New Hand: {}'.format(hand))
+        print('New Hand:')
+        self.lookAtHand()
 
 
 def getOpponents(pList, n):
