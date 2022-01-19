@@ -36,38 +36,12 @@ victoryCards = [estate, duchy, province, curse]
 #Cellar
 def cellarAction(player, opponents, board):
     hand = player.hand
+
+    phrase = 'Select the cards that you wish to discard in the format # # #. Example: 1 2 4.'
+    selectedCards = player.selectCardsFromHand(hand, phrase, nCardsSelected=len(hand))
     
-    cardsSelected = []
-    cardIndex = []
-    running = True
-    while running:
-        cardIndex=[]
-        cardsSelected = []
-        print('Select the cards that you wish to discard in the format # # #. Example: 1 2 4.')
-        print('Choose between these cards:')
-        for i, card in enumerate(hand):
-            i += 1
-            print('('+ str(i) + ') ' + card.name)
-            cardIndex.append(i)
-        cardIndex.append(i+1)
-
-        print('({}) Do discard.'.format(len(cardIndex)) )
-
-        rawInput = str(input())
-        cardsSelected = [int(i) for i in rawInput.split()]
-
-        if set(cardsSelected).issubset(cardIndex):
-            running = False
-     
-   
-    if cardIndex[-1] in cardsSelected:
-        print('No cards discarded')
-    else:
-        selectedCards = [hand[i-1] for i in cardsSelected]
-        for card in selectedCards:
-            hand.remove(card)
-            player.discard.append(card)
-        player.draw(nCards=len(cardsSelected))
+    player.handToDiscard(selectedCards)
+    player.draw(len(selectedCards))
 
 cellar = Card('Cellar', ['Action'], 2, uAction=cellarAction)
 
@@ -75,36 +49,11 @@ cellar = Card('Cellar', ['Action'], 2, uAction=cellarAction)
 def chapelAction(player, opponents, board):
     hand = player.hand
     
-    cardsSelected = []
-    cardIndex = []
-    running = True
-    while running:
-        cardIndex=[]
-        cardsSelected = []
-        print('Select the cards that you wish to TRASH in the format # # #. Example: 1 2 4.')
-        print('Choose between these cards:')
-        for i, card in enumerate(hand):
-            i += 1
-            print('('+ str(i) + ') ' + card.name)
-            cardIndex.append(i)
-        cardIndex.append(i+1)
+    phrase = 'Select the cards that you wish to TRASH in the format # # #. Example: 1 2 4.'
+    selectedCards = player.selectCardsFromHand(hand, phrase, nCardsSelected=len(hand))
 
-        print('({}) Do TRASH.'.format(len(cardIndex)) )
+    player.handToTrash(selectedCards)
 
-        rawInput = str(input())
-        cardsSelected = [int(i) for i in rawInput.split()]
-
-        if set(cardsSelected).issubset(cardIndex):
-            running = False
-     
-   
-    if cardIndex[-1] in cardsSelected:
-        print('No cards trashed')
-    else:
-        selectedCards = [hand[i-1] for i in cardsSelected]
-        for card in selectedCards:
-            hand.remove(card)
-            board.trash.append(card)
 chapel = Card('Chapel', ['Action'], 2,uAction=chapelAction)
 
 #Moat
@@ -114,31 +63,12 @@ moat = Card('Moat', ['Action', 'Reaction'], 2, cards=2)
 #Harbinger
 def harbingerAction(player, opponents, board):
     discardPile = player.discard
-    if discardPile == []:
-        print('Your discard pile is empty')
-    else:
-        print('Select a card to place onto your deck:')
-        cardIndex = []
-        cardSelected = 0
-        while cardSelected not in cardIndex:
-            print('Choose between these cards:')
-            for i, card in enumerate(discardPile):
-                i += 1
-                print('('+ str(i) + ') ' + card.name)
-                cardIndex.append(i)
-            cardIndex.append(i+1)
 
-            print('({}) Do not select a card.'.format(len(cardIndex)) )
+    phrase = 'Select a card to place onto your deck:'
+    selectedCard = player.selectCards(discardPile, phrase)
 
-            cardSelected = int(input())
-
-        if cardSelected == cardIndex[-1]:
-           print('No card topdecked.')
-        else:
-            selectedCard = discardPile[cardSelected-1]
-            print(selectedCard.name)
-            player.deck.cards.insert(0, selectedCard)
-            player.discard.remove(selectedCard)
+    player.deck.cards.insert(0, selectedCard)
+    player.discard.remove(selectedCard)
 
 harbinger = Card('Harbinger', ['Action'], 3, actions=1, cards=1, uAction=harbingerAction)
 
@@ -146,6 +76,7 @@ harbinger = Card('Harbinger', ['Action'], 3, actions=1, cards=1, uAction=harbing
 def merchantAction(player, opponents, board):
     if silver in player.hand:
         player.coins += 1
+        
 merchant = Card('Merchant', ['Action'], 3, actions=1, cards=1, uAction=merchantAction)
 
 #Vassal
@@ -177,42 +108,12 @@ village = Card('Village', ['Action'], 3, actions=2, cards=1)
 
 #Workshop
 def workshopAction(player, opponents, board):
-    cardDict = {
-        'c' : board.coppers,
-        's' : board.silvers,
-        'e' : board.estates,
-        'curse': board.curses,
-    }
-    under4 = [cardPile for cardPile in board.kingdomCards if cardPile.card.cost <= 4]
-    for i,cardPile in enumerate(under4):
-        cardDict[str(i+1)] = cardPile
-    
-    cardSelected = 0
-    while cardSelected not in cardDict.keys() and cardSelected != 'x':
-        print('--- Treasure Cards ---')
-        for key, cardPile in cardDict.items():
-            card = cardPile.card
-            print('({}) | ${} {} <{}> |   '.format(key ,card.cost, card.name, cardPile.count), end=' ')
-            if key == 's':
-                print('')
-                print('--- Victory Cards ---')
-            if key == 'curse':
-                print('')
-                print('--- Kingdom Cards ---')
-            if key == '5':
-                print('')
 
-        print('')
-        print('--- Other ---')
-        print('(x) Do not buy a card. End Turn.')
-        cardSelected = input()
+    phrase = 'Select a card to obtain.'
+    selectedCard = player.selectCardPile(selectPhrase=phrase, costMax=4)
 
-    if cardSelected == 'x':
-        print(player.name + ' did not buy a card.')
-    else:
-        selectedCard = cardDict[cardSelected]
-        player.discard.append(selectedCard.card)
-        selectedCard.count -= 1
+    selectedCard.count -= 1
+    player.dicard.append(selectedCard.card)
 
 workshop = Card('Workshop', ['Action'], 3, uAction=workshopAction)
 
@@ -250,29 +151,11 @@ def militiaAction(player, opponents, board):
         if reactionCards == []:
             
             hand = opponent.hand
-            cardsSelected = []
-            cardIndex = []
-            running = True
 
-            while running:
-                cardIndex=[]
-                cardsSelected = []
-                print('------- {}\'s choice ------'.format(opponent.name))
-                print('Select the cards that you wish to discard in the format # #. Example: 1 2.')
-                print('Choose between these cards: (MUST select 2 cards)')
-                for i, card in enumerate(hand):
-                    i += 1
-                    print('('+ str(i) + ') ' + card.name)
-                    cardIndex.append(i)
-
-                rawInput = str(input())
-                cardsSelected = [int(i) for i in rawInput.split()]
-
-                if set(cardsSelected).issubset(cardIndex) and len(cardsSelected) == 2:
-                    running = False
-            
-            
-            selectedCards = [hand[i-1] for i in cardsSelected]
+            phrase = '''Select the cards that you wish to discard in the format # #. Example: 1 2.
+            Choose between these cards: (MUST select 2 cards)'''
+            selectedCards = opponent.selectCards(hand, phrase, nCardsSelected = 2)
+           
             for card in selectedCards:
                 hand.remove(card)
                 opponent.discard.append(card)
@@ -299,8 +182,8 @@ def moneylenderAction(player, opponents, board):
         if option == 1:
             print('{} TRASHED a copper and gained 3 coins.'.format(player.name))
             player.coins += 3
-            player.hand.remove(copper)
-            board.trash.append(copper)
+
+            player.handToTrash(copper)
         else:
             print('{} decides not to play Moneylender.'.format(player.name))
             player.actions += 1
@@ -317,32 +200,12 @@ def poacherAction(player, opponents, board):
     if emptySupplyCounter != 0:
         print('Discard {} cards.'.format(str(emptySupplyCounter)))
 
-        cardsSelected = []
-        cardIndex = []
-        running = True
-
-        while running:
-            cardIndex=[]
-            cardsSelected = []
-            print('Select the cards that you wish to discard in the format # #. Example: 1 2.')
-            print('Choose between these cards: (MUST select {} cards)'.format(str(emptySupplyCounter)))
-            for i, card in enumerate(player.hand):
-                i += 1
-                print('('+ str(i) + ') ' + card.name)
-                cardIndex.append(i)
-
-            rawInput = str(input())
-            cardsSelected = [int(i) for i in rawInput.split()]
-
-            if set(cardsSelected).issubset(cardIndex) and len(cardsSelected) == emptySupplyCounter:
-                running = False
+        phrase = ''''Select the cards that you wish to discard in the format # #. Example: 1 2.'
+        Choose between these cards: (MUST select {} cards)'''.format(str(emptySupplyCounter))
+        selectedCards = player.selectCards(player.hand, phrase, emptySupplyCounter)
         
-        
-        selectedCards = [player.hand[i-1] for i in cardsSelected]
         for card in selectedCards:
-            player.hand.remove(card)
-            player.discard.append(card)
-            
+            player.handToDiscard(card)
     else:
         print('No discard needed.')
 
@@ -352,79 +215,12 @@ poacher = Card('Poacher', ['Action'], 4, actions=1, coin=1, uAction=poacherActio
 def remodelAction(player, opponents, board):
     hand = player.hand
 
-    cardIndex = []
-    cardSelected = 0
-    while cardSelected not in cardIndex:
-        print('Choose between these cards:')
-        for i, card in enumerate(hand):
-            i += 1
-            print('('+ str(i) + ') ' + card.name)
-            cardIndex.append(i)
-        cardIndex.append(i+1)
+    phrase = 'Select a card to TRASH.'
+    selectedCard = player.selectCards(hand, phrase)
+    obtainCard = player.selectCardPile(costMax=(selectedCard.cost+2))
 
-        print('({}) Do not remodel.'.format(len(cardIndex)))
-
-        cardSelected = int(input())
-    
-    if cardSelected == cardIndex[-1]:
-        print('{} decided not to remodel.'.format(player.name))
-        player.actions += 1
-    else:
-        selectedCard = hand[cardSelected-1]
-        hand.remove(selectedCard)
-        board.trash.append(selectedCard)
-        maxValue = selectedCard.cost + 2
-
-        cardDict = {}
-        
-        eligableTCards = [cardPile for cardPile in board.treasureCards if cardPile.card.cost <= maxValue]
-        for cardPile in eligableTCards:
-            if cardPile.card.name == 'Copper':
-                cardDict['c'] = cardPile
-            if cardPile.card.name == 'Silver':
-                cardDict['s'] = cardPile
-            if cardPile.card.name == 'Gold':
-                cardDict['g'] = cardPile
-
-        eligableVCards = [cardPile for cardPile in board.vicCards if cardPile.card.cost <= maxValue]
-        for cardPile in eligableVCards:
-            if cardPile.card.name == 'Estate':
-                cardDict['e'] = cardPile
-            if cardPile.card.name == 'Duchy':
-                cardDict['d'] == cardPile
-            if cardPile.card.name == 'Provinces':
-                cardDict['p'] == cardPile
-            if cardPile.card.name == 'Curse':
-                cardDict['curse'] = cardPile
-        
-        
-
-        eligableKCards = [cardPile for cardPile in board.kingdomCards if cardPile.card.cost <= maxValue]
-        for i,cardPile in enumerate(eligableKCards):
-            cardDict[str(i+1)] = cardPile
-
-        cardSelected = 0
-        while cardSelected not in cardDict.keys():
-            print('--- Treasure Cards ---')
-            for key, cardPile in cardDict.items():
-                card = cardPile.card
-                print('({})| ${} {} <{}> |   '.format(key ,card.cost, card.name, cardPile.count), end=' ')
-                if key == 's':
-                    print('')
-                    print('--- Victory Cards ---')
-                if key == 'curse':
-                    print('')
-                    print('--- Kingdom Cards ---')
-                if key == '5':
-                    print('')
-
-            print('')
-            print('Select which card you would like to obtain.')
-            cardSelected = str(input())
-        
-        selectedCard = cardDict[cardSelected]
-        player.discard.append(selectedCard.card)
-        selectedCard.count -= 1   
+    player.discard.append(obtainCard)
+    obtainCard.count -=1
     
 remodel = Card('Remodel', ['Action'], 4, uAction=remodelAction)
 
@@ -433,21 +229,9 @@ smithy = Card('Smithy', ['Action'], 4, cards=3,)
 
 #Throne Room
 def throneRoomAction(player, opponents, board):
-    hand = player.hand
-
     actionCards = player.getActionsCard()
-
-    cardSelected = 0
-    cardIndex = []
-    while cardSelected not in cardIndex:    
-        print('Select which card you would like to play twice.')
-        for i, card in enumerate(actionCards):
-            print('({}) {}'.format(i+1, card.name))
-            cardIndex.append(i+1)
-
-        cardSelected = int(input())
-
-    selectedCard = actionCards[cardSelected-1]
+    phrase = 'Select which card you would like to play twice.'
+    selectedCard = player.selectCard(actionCards, phrase)
 
     def playCard(selectedCard):
         player.actions += selectedCard.actions
@@ -457,7 +241,7 @@ def throneRoomAction(player, opponents, board):
         if selectedCard.carddraw != 0:
             player.draw(nCards=selectedCard.carddraw)
 
-        if card.uAction != None:
+        if selectedCard.uAction != None:
             selectedCard.uAction(player, player.opponents, board)
 
     playCard(selectedCard)
@@ -528,34 +312,25 @@ market = Card('Market', ['Action'], 5, cards=1, actions=1, buys=1, coin=1)
 #Mine
 def mineAction(player, opponents, board):
     treasureCards = []
-    cardIndex = []
-    for i,card in enumerate(player.hand):
+    
+    for card in player.hand:
         if card == copper or card == silver:
             treasureCards.append(card)
-            cardIndex.append(i+1)
-    
+            
     if treasureCards == []:
         player.actions += 1
+        print('No treasure to TRASH.')
         return
 
-    cardSelected = 0
-    while cardSelected not in cardIndex:
-        print('Select which treasure you want to upgrade: ')
-        for i, card in enumerate(treasureCards):
-            print('({}) {}'.format(str(i+1), card.name))
+    selectedCard = player.selectCards(treasureCards)
 
-        cardSelected = int(input())
-
-    selectedCard = treasureCards[cardSelected-1]
     if selectedCard == copper:
-        player.hand.remove(copper)
-        board.trash.append(copper)
+        player.handToTrash(copper)
         player.hand.append(silver)
     else:
-        player.hand.remove(silver)
-        board.trash.append(silver)
+        player.handToTrash(silver)
         player.hand.append(gold)
-        
+
 mine = Card('Mine', ['Action'], 5, uAction=mineAction)
 
 #sentry
@@ -616,57 +391,18 @@ witch = Card('Witch', ['Action', 'Attack'], 5, cards=2, uAction=witchAction)
 #-----6 Cost
 #Artisan
 def artisanAction(player, opponents, board):
-    cardDict = {
-        'c' : board.coppers,
-        's' : board.silvers,
-        'e' : board.estates,
-        'd' : board.dutchies,
-        'curse': board.curses,
-    }
-    under5 = [cardPile for cardPile in board.kingdomCards if cardPile.card.cost <= 5]
-    for i,cardPile in enumerate(under5):
-        cardDict[str(i+1)] = cardPile
-    
-    cardSelected = 0
-    while cardSelected not in cardDict.keys() and cardSelected != 'x':
-        print('--- Treasure Cards ---')
-        for key, cardPile in cardDict.items():
-            card = cardPile.card
-            print('({})| ${} {} <{}> |   '.format(key ,card.cost, card.name, cardPile.count), end=' ')
-            if key == 's':
-                print('')
-                print('--- Victory Cards ---')
-            if key == 'curse':
-                print('')
-                print('--- Kingdom Cards ---')
-            if key == '5':
-                print('')
 
-        print('')
-        print('--- Other ---')
-        print('(x) Do not buy a card. End Turn.')
-        cardSelected = input()
+    hand = player.hand
 
-    if cardSelected == 'x':
-        print(player.name + ' did not Select a card.')
-    else:
-        selectedCard = cardDict[cardSelected]
-        player.hand.append(selectedCard.card)
-        selectedCard.count -= 1
+    phrase = 'Please select a card to add to your hand'
+    selectedCard = player.selectCards(hand, phrase)
+    player.hand.append(selectedCard.card)
+    selectedCard.count -= 1
 
-        option = 0
-        cardIndex = []
-        while option not in cardIndex:
-            print('Select a card from your hand to Top Deck:')
-            for i,card in enumerate(player.hand):
-                print('({}) {}'.format(str(i+1),card.name))
-                cardIndex.append(i+1)
-
-            option = int(input())
-
-        topDeckCard = player.hand[option-1]
-        player.hand.remove(topDeckCard)
-        player.deck.cards.insert(0,topDeckCard)
+    phrase = 'Please select a card to Top Deck:'
+    topDeckCard =  player.selectCards(hand, phrase)
+    player.hand.remove(topDeckCard)
+    player.deck.cards.insert(0,topDeckCard)
 
 artisan = Card('Artisan', ['Action'], 6, uAction=artisanAction)
 
